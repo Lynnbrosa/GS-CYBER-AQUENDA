@@ -1,0 +1,3 @@
+API C# (C:\Users\User\Desktop\GS-c--AQUENDA\src): 0 achado(s)
+app (C:\Users\User\Desktop\GS-MOBILE-AQUENDA\src): 0 achado(s)
+exit 0

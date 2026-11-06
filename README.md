@@ -19,8 +19,8 @@ Repositórios do protótipo auditado: [app mobile](https://github.com/Lynnbrosa/
 | Missão | Onde | O que faz |
 |---|---|---|
 | 01 · Mapeamento de PII | `aquenda_cyber/pii/` | Motor de regras que acha CPF, CNS (Cartão SUS), RG, cartão, telefone, e-mail, endereço, CEP, coordenada precisa, data de nascimento, **dado de saúde** (hormônio com dose, HIV, PrEP, CID), **nome de registro** (nome morto), identidade de gênero, **senha/PIN** e tokens. Varre texto, arquivos, pastas, JSON e bancos SQLite. |
-| 02 · Taint Analysis | `taint_ts/` | Análise estática do app TypeScript. Segue o dado sensível da fonte (SQLite da agenda, formulário, PIN, GPS) até cada saída insegura (rede, log, link externo, área de transferência, AsyncStorage, notificação). |
-| 02 · Bloqueio | `aquenda_cyber/guarda/` e `src/lib/saidaSegura.ts` no app | Travas em tempo de execução: middleware ASGI que mascara ou barra a resposta, filtro de logging e a checagem do app antes de qualquer `fetch`. |
+| 02 · Taint Analysis | `taint_ts/` e `rules/` | Análise estática do app TypeScript, que segue o dado sensível da fonte (SQLite da agenda, formulário, PIN, GPS) até cada saída insegura (rede, log, link externo, área de transferência, AsyncStorage, notificação). Mais regras de taint do Semgrep para o app e para a **API C#**. |
+| 02 · Bloqueio | `aquenda_cyber/guarda/`, `aquenda_cyber/hook.py`, a API C# e o app | O mesmo filtro em quatro lugares: nas salas da API C# (recusa a mensagem), nos logs da API C# e da FastAPI (mascara), no app antes de qualquer `fetch` (barra) e no repositório (o pre-commit barra o commit). |
 | 03 · Tradução via IA | `aquenda_cyber/ia/remediacao.py` | O Claude transforma cada falha técnica num alerta claro: o risco para a pessoa, quem é afetado, a gravidade, como corrigir e um aviso para o app. O modelo recebe só a evidência mascarada. |
 | Dashboard | `aquenda_cyber/painel/` | Painel web com o índice Risco Cidadão (0 a 100), a nota por componente, os alertas, o histórico, as falhas e os controles verificados. |
 
@@ -56,6 +56,14 @@ O app mobile fica na pasta vizinha `../GS-MOBILE-AQUENDA`, que é o padrão dos 
 
 ```bash
 .venv/Scripts/python -m aquenda_cyber taint taint_ts/exemplos/vulneravel
+```
+
+```bash
+.venv/Scripts/python -m aquenda_cyber semgrep
+```
+
+```bash
+.venv/Scripts/python -m aquenda_cyber instalar-hook . ../GS-c--AQUENDA ../GS-MOBILE-AQUENDA
 ```
 
 ```bash
@@ -140,10 +148,36 @@ O exemplo tem nove vazamentos plantados e cinco casos limpos. A análise pega os
 
 O teste de mutação (`tests/test_taint.py`) copia o app de verdade, insere um `fetch` com a agenda e confere que a análise passa a acusar a violação. O zero do app é resultado da análise, não da falta dela.
 
+### Regras de taint no Semgrep (app e API C#)
+
+`rules/aquenda-csharp.yaml` e `rules/aquenda-typescript.yaml` são regras em modo taint do Semgrep. A auditoria roda as duas e o painel mostra o resultado em "O que rodou".
+
+| Regra | Fonte | Saída proibida | Limpa o dado |
+|---|---|---|---|
+| `aquenda-cs-dado-da-pessoa-no-log` | o que a pessoa manda à API: texto, apelido, token, CEP, coordenada | `ILogger`, `Console`, `Debug` | `MascaradorPii.Mascarar`, hash do token, `Math.Round` |
+| `aquenda-cs-token-sem-hash` | o token de participante | gravar em `TokenHash` ou SQL sem `HashToken` | `ParticipanteChat.HashToken` |
+| `aquenda-ts-dado-do-celular-saindo` | agenda, consultas, PIN, posição exata | `fetch`, `pedirJson`, `axios`, `console`, `Linking`, `Share`, `Clipboard`, `AsyncStorage` | os sanitizadores da política e campos neutros (`id`, `length`) |
+
+| Alvo | Achados |
+|---|---|
+| API C# real (`../GS-c--AQUENDA/src`) | **0**. A regra achou um caso real, a API gravava no log o CEP digitado pela pessoa (`BrasilApiGeocodificador`), e ele foi corrigido. |
+| App real | **0** |
+| `exemplos/csharp_vulneravel` | **5 de 5** vazamentos plantados, nenhum dos 3 casos limpos |
+| Exemplo do app | **7 de 9**: o Semgrep olha dentro de cada função; os 2 que atravessam funções ficam com o analisador próprio, que pega os 9 |
+
+Na auditoria, o que o analisador próprio e o Semgrep apontam na mesma linha conta uma vez só.
+
+```bash
+.venv/Scripts/python -m aquenda_cyber semgrep
+```
+
 ### Bloqueio em tempo de execução
 
 A análise estática acha o problema no código. As travas seguram o que escapar:
 
+- **Nas salas da API C#**, toda mensagem passa pelo `ModeradorAutomatico` antes de ser gravada e enviada pelo SignalR. Ele recusa (422) CPF, telefone, e-mail, link, **nome de registro** ("meu nome de registro é…", "nome morto: …") e **senha, PIN ou chave**. Os padrões ficam em `Aquenda.Domain/Privacidade/PadroesPii.cs`, os mesmos deste motor. Falar de saúde continua livre, porque é para isso que as salas existem, e o texto vai cifrado para o banco (AES-256-GCM). Prova rodando: `docs/evidencias/csharp-filtro-salas.txt`.
+- **Nos logs da API C#**, o `FormatadorLogSemPii` passa toda linha do console (e as exceções) pelo `MascaradorPii`: CPF, telefone, e-mail, nome de registro, segredo e dado de saúde viram marcadores como `[CPF]` e `[DADO DE SAÚDE]`.
+- **No repositório**, `python -m aquenda_cyber instalar-hook <repo>` instala um pre-commit que olha só as linhas novas do commit. Ele barra credencial em qualquer arquivo e CPF, CNS, nome de registro ou saúde em arquivo de dados. Amostras de propósito vão em `.aquenda-pii-permitidos`. Está instalado nos repositórios do app, da API C# e deste módulo. Prova: `docs/evidencias/hook-pre-commit.txt`.
 - **`GuardaDeSaida`** é um middleware ASGI para a FastAPI. Ele varre o JSON de cada resposta e mascara o dado sensível ou barra a resposta inteira com `502` (ProblemDetails). O cabeçalho `x-aquenda-pii` diz quantos achados houve. Rotas públicas (o telefone de um CRAS, por exemplo) ficam na lista de permitidos.
 - **`FiltroPII`** entra nos loggers, e o log grava só a versão mascarada.
 - **`saida_segura()`** checa o valor antes de mandar para um destino que não deveria receber dado sensível.
@@ -208,7 +242,7 @@ Depois das correções, a auditoria deu **0/100, baixo** nos três componentes. 
 |---|---|
 | ![Antes](docs/evidencias/painel-prototipo-antes.png) | ![Depois](docs/evidencias/painel-prototipo.png) |
 
-O exemplo com falhas dá **67/100, alto**: o app fica crítico com as 9 violações, e o log plantado tem CPF, token e dado de saúde.
+O exemplo com falhas dá **78/100, alto**: o app fica crítico com as 9 violações, a API C# de exemplo tem os 5 vazamentos do Semgrep e o log plantado tem CPF, token e dado de saúde.
 
 ## Evidências
 
@@ -223,7 +257,10 @@ O relatório completo da auditoria, em PDF, está em [`docs/Aquenda_Cyber_Audito
 | `taint-exemplo-vulneravel.txt` e `.json` | as 9 violações com a trilha de cada uma |
 | `pii-varrer-texto.txt`, `pii-varrer-log.txt` | o motor de PII num texto e num log |
 | `guarda-demo.txt` | a resposta da API sem guarda, mascarada e bloqueada |
-| `testes.txt` | os 63 testes passando |
+| `semgrep-api-e-app.txt` e `semgrep-exemplos.txt` | as regras Semgrep: 0 achados no código real, 5 de 5 no C# de exemplo e 7 no app de exemplo |
+| `csharp-filtro-salas.txt` | as salas da API C# recusando nome de registro, senha, CPF e telefone, e aceitando conversa sobre saúde |
+| `hook-pre-commit.txt` | o pre-commit barrando um commit com chave de API e CPF |
+| `testes.txt` | os 75 testes passando |
 
 ## Roteiro do vídeo (até 3 min)
 
@@ -232,7 +269,7 @@ O relatório completo da auditoria, em PDF, está em [`docs/Aquenda_Cyber_Audito
 3. **0:50** A taint analysis no exemplo: as 9 violações e a trilha de uma delas, da agenda até o `fetch`. Depois no app real: zero violações e 18 fluxos permitidos.
 4. **1:30** As travas: `demo_guarda.py` mascarando e bloqueando com 502.
 5. **1:50** O painel: a falha do chat no exemplo e na primeira auditoria (29), explicada para pessoas. Depois, a correção (token para ler e mensagem cifrada no banco) e um novo "Rodar auditoria": o índice cai para 0 e o histórico mostra a queda.
-6. **2:40** Fechamento: o exemplo com falhas (67) mostra o que o painel acha, e o Claude entra ligando a `ANTHROPIC_API_KEY`.
+6. **2:40** Fechamento: o exemplo com falhas (78) mostra o que o painel acha, o pre-commit barra uma chave no commit e o Claude entra ligando a `ANTHROPIC_API_KEY`.
 
 ## Estrutura
 
@@ -244,12 +281,14 @@ aquenda_cyber/
   ia/           tradução das falhas em alerta (Claude + tradutor local)
   painel/       FastAPI e página do painel
   auditoria.py  modelo de falha, pontuação e índice
+  hook.py       pre-commit que barra segredo e dado pessoal
   __main__.py   linha de comando
+rules/          regras de taint do Semgrep (C# e TypeScript)
 taint_ts/
   analisar.mjs  análise de taint com a API do compilador TypeScript
   politica.json fontes, saídas, sanitizadores e fluxos permitidos
   exemplos/     app de exemplo com vazamentos plantados
-exemplos/       log vulnerável e demonstração das travas
-tests/          63 testes (pytest + Hypothesis)
+exemplos/       log vulnerável, C# com vazamentos plantados e demonstração das travas
+tests/          75 testes (pytest + Hypothesis)
 docs/evidencias prints e saídas
 ```

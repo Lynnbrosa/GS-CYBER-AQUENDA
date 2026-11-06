@@ -1,0 +1,11 @@
+$ git commit -m "config"
+Commit barrado pelo Aquenda: tem segredo ou dado pessoal nas linhas novas.
+  .env:1  Token ou chave de acesso: sk-a•••••••••••••••••••••••••••••••••••••••••
+  seed.json:1  CPF: •••.•••.•••-25
+  seed.json:1  Dado de saúde: •••••••••
+
+Tire o dado do arquivo. Se for amostra de propósito, liste o caminho em .aquenda-pii-permitidos ou marque a linha com 'aquenda-pii: ok'.
+(exit 1)
+
+$ git log
+fatal: your current branch 'master' does not have any commits yet

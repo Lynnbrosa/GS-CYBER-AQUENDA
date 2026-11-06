@@ -1,0 +1,5 @@
+# Amostras de propósito: testes, exemplos com vazamento plantado e evidências da auditoria
+tests/*
+exemplos/*
+taint_ts/exemplos/*
+docs/evidencias/*

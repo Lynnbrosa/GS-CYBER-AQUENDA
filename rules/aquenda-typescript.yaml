@@ -1,0 +1,60 @@
+# Taint analysis do app Expo (Semgrep, modo taint), dentro de cada função.
+# Complementa o analisador próprio (taint_ts/analisar.mjs), que segue o dado entre funções e arquivos.
+# Fonte: agenda de hormônio, consultas, PIN, posição exata. Saída proibida: rede, log, link externo,
+# AsyncStorage sem cifra, área de transferência, compartilhamento.
+#
+#   semgrep --config rules/aquenda-typescript.yaml ../GS-MOBILE-AQUENDA/src
+
+rules:
+  - id: aquenda-ts-dado-do-celular-saindo
+    mode: taint
+    languages: [typescript]
+    severity: ERROR
+    message: >-
+      Dado que nunca sai do celular (agenda, consulta, PIN ou posição exata) chega a $SAIDA.
+      A agenda grava só no expo-sqlite; nenhuma chamada de rede ou log leva esse dado.
+    metadata:
+      categoria: dado_sensivel
+      lgpd: "art. 11 (dado de saúde)"
+    pattern-sources:
+      - pattern: await listarLembretes(...)
+      - pattern: await obterLembrete(...)
+      - pattern: await ultimosRegistros(...)
+      - pattern: await listarConsultas(...)
+      - pattern: await obterConsulta(...)
+      - pattern: listarLembretes(...)
+      - pattern: listarConsultas(...)
+      - pattern: await SecureStore.getItemAsync(...)
+      - pattern: await pedirPosicao(...)
+      - pattern: await Location.getCurrentPositionAsync(...)
+      # o PIN digitado ao criar ou conferir
+      - patterns:
+          - pattern-either:
+              - pattern-inside: function definirPin($PIN, ...) { ... }
+              - pattern-inside: function conferirPin($PIN, ...) { ... }
+              - pattern-inside: async function definirPin($PIN, ...) { ... }
+              - pattern-inside: async function conferirPin($PIN, ...) { ... }
+          - pattern: $PIN
+    pattern-sanitizers:
+      # campos neutros: o id local e a contagem podem sair
+      - pattern: $X.id
+      - pattern: $X[$I].id
+      - pattern: conteudoLembrete(...)
+      - pattern: conteudoConsulta(...)
+      - pattern: planoDeNotificacoes(...)
+      - pattern: avisoDaConsulta(...)
+      - pattern: $C.digestStringAsync(...)
+      - pattern: $X.toFixed(...)
+      - pattern: $X.length
+    pattern-sinks:
+      - patterns:
+          - pattern-either:
+              - pattern: fetch(...)
+              - pattern: pedirJson(...)
+              - pattern: axios.$M(...)
+              - pattern: console.$M(...)
+              - pattern: Linking.openURL(...)
+              - pattern: Share.share(...)
+              - pattern: Clipboard.setStringAsync(...)
+              - pattern: AsyncStorage.setItem(...)
+          - pattern: $SAIDA(...)

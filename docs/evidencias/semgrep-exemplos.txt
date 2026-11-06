@@ -1,0 +1,15 @@
+API C# (exemplos\csharp_vulneravel): 5 achado(s)
+  [aquenda-cs-dado-da-pessoa-no-log] ChatVazando.cs:13  _log.LogInformation("Mensagem na sala {Sala}: {Texto}", salaId, texto);
+  [aquenda-cs-dado-da-pessoa-no-log] ChatVazando.cs:19  _log.LogWarning("Recusada: " + req.Texto);
+  [aquenda-cs-dado-da-pessoa-no-log] ChatVazando.cs:26  _log.LogWarning("CEP {Cep} não encontrado", limpo);
+  [aquenda-cs-dado-da-pessoa-no-log] ChatVazando.cs:32  Console.WriteLine($"token recebido: {token}");
+  [aquenda-cs-token-sem-hash] ChatVazando.cs:39  p.TokenHash = token;
+app (taint_ts\exemplos\vulneravel\src): 7 achado(s)
+  [aquenda-ts-dado-do-celular-saindo] posicao.ts:8  await fetch(`https://api.exemplo.com/perto?lat=${p.lat}&lon=${p.lon}`);
+  [aquenda-ts-dado-do-celular-saindo] posicao.ts:21  await fetch(`https://api.exemplo.com/busca?q=${filtro.texto}&lat=${filtro.lat}`);
+  [aquenda-ts-dado-do-celular-saindo] vazamentos.ts:10  await fetch("https://analytics.exemplo.com/evento", { method: "POST", body: JSON.stringify
+  [aquenda-ts-dado-do-celular-saindo] vazamentos.ts:22  await Linking.openURL(`https://wa.me/?text=${encodeURIComponent(`Minha consulta: ${c.titul
+  [aquenda-ts-dado-do-celular-saindo] vazamentos.ts:28  console.log("lembrete", primeiro.anotacao);
+  [aquenda-ts-dado-do-celular-saindo] vazamentos.ts:34  await AsyncStorage.setItem("cache", JSON.stringify(lista));
+  [aquenda-ts-dado-do-celular-saindo] vazamentos.ts:39  console.warn("pin criado", pin);
+exit 2

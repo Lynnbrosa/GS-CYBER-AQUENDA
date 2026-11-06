@@ -1,0 +1,13 @@
+Filtro de PII nas salas da API C# (POST /api/chat/salas/2/mensagens), rodando de verdade:
+  422  "meu nome de registro é João"
+       -> Seu nome de registro fica só com você: o Aquenda não grava nome de registro. Dá para contar a história sem ele.
+  422  "minha senha: Kiwi#2026"
+       -> Não compartilhe senha, PIN ou chave de acesso na sala.
+  422  "meu cpf é 529.982.247-25"
+       -> Não compartilhe CPF na sala.
+  422  "me chama no (11) 98765-4321"
+       -> Não compartilhe telefone na sala. Contato pessoal fica fora do app, por segurança.
+  201  "Comecei estradiol 2mg semana passada, alguém sentiu enjoo?"
+       -> aceita (vai cifrada para o banco)
+  201  "como faço para mudar o nome de registro no cartório?"
+       -> aceita (vai cifrada para o banco)

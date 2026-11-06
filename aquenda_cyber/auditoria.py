@@ -23,7 +23,7 @@ import httpx
 
 from .pii import Achado, MotorPII, Sensibilidade
 from .pii.modelo import PESO_SENSIBILIDADE
-from .taint import TaintIndisponivel, analisar_app
+from .taint import REGRAS_CSHARP, REGRAS_TS, TaintIndisponivel, analisar_app, rodar_semgrep
 
 # Quanto pesa cada tipo de saída: quanto mais longe do celular e mais gente vê, maior.
 PESO_EXPOSICAO = {
@@ -157,6 +157,39 @@ def falhas_do_taint(relatorio: dict) -> tuple[list[Falha], list[dict]]:
             )
         )
     return falhas, controles
+
+
+_SAIDA_DO_CODIGO = [
+    (re.compile(r"\b(fetch|pedirJson|axios)\b"), "rede"),
+    (re.compile(r"\bconsole\.|\bLog(Trace|Debug|Information|Warning|Error|Critical)?\(|Console\.|Debug\.WriteLine|Trace\.WriteLine"), "log"),
+    (re.compile(r"Linking\.openURL|Share\.share"), "link_externo"),
+    (re.compile(r"AsyncStorage\.setItem"), "armazenamento_sem_cifra"),
+    (re.compile(r"Clipboard\."), "area_de_transferencia"),
+    (re.compile(r"TokenHash|ExecuteSql"), "banco_servidor"),
+]
+_DADO_DA_REGRA = {
+    "aquenda-cs-dado-da-pessoa-no-log": ("Dado que a pessoa mandou à API", Sensibilidade.SENSIVEL),
+    "aquenda-cs-token-sem-hash": ("Token das salas", Sensibilidade.CREDENCIAL),
+    "aquenda-ts-dado-do-celular-saindo": ("Dado que nunca sai do celular", Sensibilidade.SENSIVEL),
+}
+
+
+def falhas_do_semgrep(achados: list[dict], componente: str, ja_vistas: set[str] = frozenset()) -> list[Falha]:
+    """Achados das regras Semgrep (rules/). O que o analisador próprio já apontou na mesma linha não conta duas vezes."""
+    falhas = []
+    for a in achados:
+        origem = f"{a['arquivo']}:{a['linha']}"
+        if origem in ja_vistas:
+            continue
+        nome, sens = _DADO_DA_REGRA.get(a["regra"], ("Dado da pessoa", Sensibilidade.PESSOAL))
+        exposicao = next((s for p, s in _SAIDA_DO_CODIGO if p.search(a["codigo"])), a["metadata"].get("exposicao", "log"))
+        falhas.append(Falha(
+            id=_id("semgrep", a["regra"], origem), componente=componente, tipo="vazamento_no_codigo",
+            titulo=f"{nome} chega a {exposicao} (Semgrep)", regra=a["regra"], nome_dado=nome, sensibilidade=sens.value,
+            exposicao=exposicao, evidencia=a["codigo"][:120], origem=origem, ocorrencias=1, confianca=0.85,
+            detalhes=[a["mensagem"]],
+        ))
+    return falhas
 
 
 def _agrupar(achados: list[Achado], componente: str, tipo: str, exposicao: str, prefixo: str, normalizar_origem) -> list[Falha]:
@@ -308,6 +341,7 @@ def auditar(
     bancos: dict[str, Path] | None = None,
     logs: dict[str, list[Path]] | None = None,
     motor: MotorPII | None = None,
+    codigo_csharp: Path | None = None,
 ) -> Auditoria:
     motor = motor or MotorPII()
     falhas: list[Falha] = []
@@ -323,8 +357,28 @@ def auditar(
             fontes["taint_app"] = f"{rel['arquivos_analisados']} arquivos, {rel['funcoes_com_resumo']} funções, {rel['resumo']['violacoes']} violações"
         except TaintIndisponivel as e:
             fontes["taint_app"] = f"não rodou: {e}"
+        vistas = {f.origem for f in falhas}
+        try:
+            com_src = (app / "src").exists()
+            achados = rodar_semgrep(app / "src" if com_src else app, REGRAS_TS)
+            if com_src:  # mesma origem do taint próprio (relativa à raiz do app), para não contar duas vezes
+                for x in achados:
+                    x["arquivo"] = f"src/{x['arquivo']}"
+            novas = falhas_do_semgrep(achados, "app", vistas)
+            falhas += novas
+            fontes["semgrep_app"] = f"{len(achados)} achado(s), {len(achados) - len(novas)} já vistos pelo taint próprio"
+        except TaintIndisponivel as e:
+            fontes["semgrep_app"] = f"não rodou: {e}"
         falhas += falhas_do_repositorio(motor, app, "app")
         fontes["repositorio_app"] = "varrido"
+
+    if codigo_csharp and Path(codigo_csharp).exists():
+        try:
+            achados = rodar_semgrep(Path(codigo_csharp), REGRAS_CSHARP)
+            falhas += falhas_do_semgrep(achados, "api_csharp")
+            fontes["semgrep_api_csharp"] = f"{len(achados)} achado(s) nas regras de taint"
+        except TaintIndisponivel as e:
+            fontes["semgrep_api_csharp"] = f"não rodou: {e}"
 
     rotas = rotas_padrao(api_csharp, api_soa)
     if rotas:

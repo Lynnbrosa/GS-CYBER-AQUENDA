@@ -32,12 +32,14 @@ class Configuracao:
     saida: Path = RAIZ / "saida"
     usar_claude: bool | None = None
     alertas_por_auditoria: int = 8
+    codigo_csharp: Path | None = None
 
 
 def config_exemplo(base: Configuracao) -> Configuracao:
     return Configuracao(
         app=RAIZ / "taint_ts" / "exemplos" / "vulneravel",
         logs={"api_csharp": [RAIZ / "exemplos" / "logs" / "api-com-vazamento.log"]},
+        codigo_csharp=RAIZ / "exemplos" / "csharp_vulneravel",
         saida=base.saida,
         usar_claude=base.usar_claude,
         alertas_por_auditoria=base.alertas_por_auditoria,
@@ -45,7 +47,8 @@ def config_exemplo(base: Configuracao) -> Configuracao:
 
 
 def rodar(conf: Configuracao, alvo: str) -> dict:
-    aud = auditar(app=conf.app, api_csharp=conf.api_csharp, api_soa=conf.api_soa, bancos=conf.bancos or None, logs=conf.logs or None)
+    aud = auditar(app=conf.app, api_csharp=conf.api_csharp, api_soa=conf.api_soa, bancos=conf.bancos or None, logs=conf.logs or None,
+                  codigo_csharp=conf.codigo_csharp)
     pasta = conf.saida / alvo
     salvar(aud, pasta)
     tradutor = Tradutor(cache=conf.saida / "cache_ia.json", usar_claude=conf.usar_claude)

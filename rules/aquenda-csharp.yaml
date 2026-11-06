@@ -1,0 +1,77 @@
+# Taint analysis da API C# do Aquenda (Semgrep, modo taint).
+# Fonte: o que a pessoa manda para a API (texto da mensagem, apelido, token, CEP, coordenada).
+# Saída proibida: log (ILogger), console e Debug.
+# Limpa o dado: MascaradorPii.Mascarar, o hash do token e o arredondamento da coordenada.
+#
+#   semgrep --config rules/aquenda-csharp.yaml ../GS-c--AQUENDA/src
+
+rules:
+  - id: aquenda-cs-dado-da-pessoa-no-log
+    mode: taint
+    languages: [csharp]
+    severity: ERROR
+    message: >-
+      O dado que a pessoa mandou ($FONTE) chega ao log. Log da VM é lido pela equipe e por ferramentas:
+      tire o valor da mensagem de log ou passe por MascaradorPii.Mascarar.
+    metadata:
+      categoria: privacidade
+      lgpd: "art. 6º, III (necessidade) e art. 46 (segurança)"
+      exposicao: log
+    pattern-sources:
+      # parâmetro de método com nome de dado da pessoa
+      - patterns:
+          - pattern-inside: |
+              $RET $METODO(..., $TIPO $FONTE, ...) { ... }
+          - metavariable-regex:
+              metavariable: $FONTE
+              regex: (?i)^(cep|texto|apelido|token|lat|lon|latitude|longitude|endereco|telefone|email|cpf|nomeregistro)$
+          - pattern: $FONTE
+      # campo de requisição com o mesmo tipo de dado
+      - patterns:
+          - pattern: $REQ.$FONTE
+          - metavariable-regex:
+              metavariable: $FONTE
+              regex: ^(Texto|Apelido|Token|Cep|Lat|Lon|Latitude|Longitude|Endereco|Telefone|Email|Cpf)$
+    pattern-sanitizers:
+      - pattern: MascaradorPii.Mascarar(...)
+      - pattern: ParticipanteChat.HashToken(...)
+      - pattern: Math.Round(...)
+      - pattern: $X.Length
+    pattern-sinks:
+      - patterns:
+          - pattern: $LOG.$NIVEL(...)
+          - metavariable-regex:
+              metavariable: $NIVEL
+              regex: ^Log(Trace|Debug|Information|Warning|Error|Critical)?$
+      - pattern: Console.$ESCREVER(...)
+      - pattern: Debug.WriteLine(...)
+      - pattern: Trace.WriteLine(...)
+
+  - id: aquenda-cs-token-sem-hash
+    mode: taint
+    languages: [csharp]
+    severity: ERROR
+    message: >-
+      O token de participante ($FONTE) vai para o banco sem passar por ParticipanteChat.HashToken.
+      Quem copiar o banco poderia escrever com o apelido de outra pessoa.
+    metadata:
+      categoria: credencial
+      exposicao: banco_servidor
+    pattern-sources:
+      - patterns:
+          - pattern-inside: |
+              $RET $METODO(..., string $FONTE, ...) { ... }
+          - metavariable-regex:
+              metavariable: $FONTE
+              regex: (?i)^token$
+          - pattern: $FONTE
+    pattern-sanitizers:
+      - pattern: ParticipanteChat.HashToken(...)
+      - pattern: HashToken(...)
+    pattern-sinks:
+      - pattern: $DB.ExecuteSqlAsync(...)
+      - pattern: $DB.ExecuteSqlRaw(...)
+      - pattern: |
+          $OBJ.TokenHash = $VALOR
+      - pattern: |
+          new $TIPO { ..., TokenHash = $VALOR, ... }

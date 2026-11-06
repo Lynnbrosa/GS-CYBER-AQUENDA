@@ -2,6 +2,8 @@
 
     python -m aquenda_cyber varrer "texto ou caminho"     # motor de PII
     python -m aquenda_cyber taint ../GS-MOBILE-AQUENDA      # taint analysis do app
+    python -m aquenda_cyber semgrep                        # regras de taint Semgrep (C# e TS)
+    python -m aquenda_cyber instalar-hook ../GS-c--AQUENDA # pre-commit que barra segredo e dado pessoal
     python -m aquenda_cyber auditar [opções]               # auditoria completa + alertas da IA
     python -m aquenda_cyber painel [opções]                # painel de Risco Cidadão em http://localhost:8600
     python -m aquenda_cyber empacotar                      # ZIP da entrega
@@ -26,6 +28,7 @@ def _opcoes_alvo(p: argparse.ArgumentParser) -> None:
     p.add_argument("--api-csharp", default="http://localhost:5000")
     p.add_argument("--api-soa", default="http://localhost:8000")
     p.add_argument("--banco-csharp", type=Path, default=RAIZ.parent / "GS-c--AQUENDA" / "src" / "Aquenda.Api" / "aquenda.db")
+    p.add_argument("--codigo-csharp", type=Path, default=RAIZ.parent / "GS-c--AQUENDA" / "src", help="código da API C# (regras Semgrep)")
     p.add_argument("--banco-soa", type=Path, default=RAIZ.parent / "GS-SOA-AQUENDA" / "aquenda_soa.db")
     p.add_argument("--log-csharp", type=Path, action="append", default=[])
     p.add_argument("--log-soa", type=Path, action="append", default=[])
@@ -43,6 +46,7 @@ def _configuracao(a):
         bancos={"api_csharp": a.banco_csharp, "api_soa": a.banco_soa},
         logs={"api_csharp": a.log_csharp, "api_soa": a.log_soa},
         saida=a.saida,
+        codigo_csharp=a.codigo_csharp if a.codigo_csharp and a.codigo_csharp.exists() else None,
         usar_claude=False if a.sem_ia else None,
     )
 
@@ -82,6 +86,37 @@ def cmd_taint(a) -> int:
                 print(f"               {passo}")
     print(f"\n{rel['resumo']['violacoes']} violação(ões), {rel['resumo']['permitidos']} fluxo(s) permitido(s) pela política")
     return 2 if rel["resumo"]["violacoes"] else 0
+
+
+def cmd_semgrep(a) -> int:
+    """Regras de taint do Semgrep (rules/): C# da API e TypeScript do app."""
+    from .taint import REGRAS_CSHARP, REGRAS_TS, rodar_semgrep
+
+    total = 0
+    for nome, alvo, regras in [("API C#", a.csharp, REGRAS_CSHARP), ("app", a.app, REGRAS_TS)]:
+        if not alvo or not Path(alvo).exists():
+            print(f"{nome}: pasta não encontrada ({alvo})")
+            continue
+        achados = rodar_semgrep(Path(alvo), regras)
+        total += len(achados)
+        print(f"{nome} ({alvo}): {len(achados)} achado(s)")
+        for x in achados:
+            print(f"  [{x['regra']}] {x['arquivo']}:{x['linha']}  {x['codigo'][:90]}")
+    return 2 if total else 0
+
+
+def cmd_verificar_commit(a) -> int:
+    from .hook import cmd_verificar
+
+    return cmd_verificar(a.repo)
+
+
+def cmd_instalar_hook(a) -> int:
+    from .hook import instalar
+
+    for repo in a.repos:
+        print(f"hook instalado em {instalar(repo)}")
+    return 0
 
 
 def cmd_auditar(a) -> int:
@@ -149,6 +184,19 @@ def main(argv: list[str] | None = None) -> int:
     t.add_argument("app", type=Path, nargs="?", default=RAIZ.parent / "GS-MOBILE-AQUENDA")
     t.add_argument("--json", action="store_true")
     t.set_defaults(func=cmd_taint)
+
+    sg = sub.add_parser("semgrep", help="regras de taint do Semgrep na API C# e no app")
+    sg.add_argument("--csharp", type=Path, default=RAIZ.parent / "GS-c--AQUENDA" / "src")
+    sg.add_argument("--app", type=Path, default=RAIZ.parent / "GS-MOBILE-AQUENDA" / "src")
+    sg.set_defaults(func=cmd_semgrep)
+
+    vc = sub.add_parser("verificar-commit", help="barra segredo e dado pessoal nas linhas do stage (pre-commit)")
+    vc.add_argument("--repo", type=Path, default=Path.cwd())
+    vc.set_defaults(func=cmd_verificar_commit)
+
+    ih = sub.add_parser("instalar-hook", help="instala o pre-commit do Aquenda nos repositórios")
+    ih.add_argument("repos", type=Path, nargs="+")
+    ih.set_defaults(func=cmd_instalar_hook)
 
     au = sub.add_parser("auditar", help="auditoria completa e alertas de Risco Cidadão")
     _opcoes_alvo(au)
