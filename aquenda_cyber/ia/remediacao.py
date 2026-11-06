@@ -105,6 +105,13 @@ _CORRECAO = {
 }
 
 
+def _curto(texto: str, limite: int) -> str:
+    """Corta na última palavra inteira, com reticências, em vez de no meio da palavra."""
+    if len(texto) <= limite:
+        return texto
+    return texto[: limite - 1].rsplit(" ", 1)[0].rstrip(",;:") + "…"
+
+
 def traduzir_local(f: Falha) -> AlertaCidadao:
     saida = _SAIDA.get(f.exposicao, f.exposicao)
     risco = _RISCO_POR_DADO.get(f.nome_dado, "Expõe um dado pessoal de quem usa o Aquenda.")
@@ -112,7 +119,7 @@ def traduzir_local(f: Falha) -> AlertaCidadao:
     if f.exposicao in ("resposta_api", "link_externo", "repositorio") and gravidade == "alta":
         gravidade = "critica"
     return AlertaCidadao(
-        titulo=f"{f.nome_dado} exposto: {saida}"[:80],
+        titulo=_curto(f"{f.nome_dado}: {saida}", 80),
         risco_para_a_pessoa=f"{risco} Aqui, {saida}.",
         quem_e_afetado={"api_csharp": "quem usa as salas e o catálogo", "api_soa": "quem procura vagas e saúde", "app": "quem usa o app no celular"}.get(f.componente, "quem usa o Aquenda"),
         gravidade=gravidade,

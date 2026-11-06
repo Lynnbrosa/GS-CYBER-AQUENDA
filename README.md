@@ -212,7 +212,7 @@ O exemplo com falhas dá **67/100, alto**: o app fica crítico com as 9 violaç�
 
 ## Evidências
 
-Tudo em `docs/evidencias/`:
+O relatório completo da auditoria, em PDF, está em [`docs/Aquenda_Cyber_Auditoria.pdf`](docs/Aquenda_Cyber_Auditoria.pdf). As evidências estão todas em `docs/evidencias/`:
 
 | Arquivo | O que mostra |
 |---|---|
