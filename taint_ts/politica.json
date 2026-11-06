@@ -1,0 +1,219 @@
+{
+  "descricao": "Política de taint do app Aquenda. Contrato do grupo: agenda de hormônio, consultas e PIN nunca saem do celular.",
+  "fontes": [
+    {
+      "chamada": "listarLembretes",
+      "rotulo": "agenda",
+      "explicacao": "lembretes de hormônio lidos do SQLite"
+    },
+    {
+      "chamada": "obterLembrete",
+      "rotulo": "agenda",
+      "explicacao": "um lembrete de hormônio"
+    },
+    {
+      "chamada": "ultimosRegistros",
+      "rotulo": "agenda",
+      "explicacao": "quando a pessoa tomou o hormônio"
+    },
+    {
+      "chamada": "listarConsultas",
+      "rotulo": "consultas",
+      "explicacao": "consultas médicas lidas do SQLite"
+    },
+    {
+      "chamada": "obterConsulta",
+      "rotulo": "consultas",
+      "explicacao": "uma consulta médica"
+    },
+    {
+      "parametro": "definirPin",
+      "indice": 0,
+      "rotulo": "pin",
+      "explicacao": "PIN digitado ao criar"
+    },
+    {
+      "parametro": "conferirPin",
+      "indice": 0,
+      "rotulo": "pin",
+      "explicacao": "PIN digitado ao entrar"
+    },
+    {
+      "chamada": "getItemAsync",
+      "objeto": "SecureStore",
+      "arquivo": "discreto",
+      "rotulo": "pin",
+      "explicacao": "hash e sal do PIN"
+    },
+    {
+      "estado_em": "app/agenda/",
+      "rotulo": "agenda",
+      "explicacao": "o que a pessoa digita no formulário da agenda"
+    },
+    {
+      "chamada": "lerParticipante",
+      "rotulo": "token_salas",
+      "explicacao": "token das salas de conversa"
+    },
+    {
+      "chamada": "pedirPosicao",
+      "rotulo": "localizacao",
+      "explicacao": "posição do celular"
+    }
+  ],
+  "sumidouros": [
+    {
+      "chamada": "fetch",
+      "tipo": "rede",
+      "explicacao": "sai do celular pela internet"
+    },
+    {
+      "chamada": "pedirJson",
+      "tipo": "rede",
+      "explicacao": "sai do celular para uma API"
+    },
+    {
+      "objeto": "console",
+      "tipo": "log",
+      "explicacao": "log do aparelho, lido por qualquer app de depuração e por relatórios de erro"
+    },
+    {
+      "chamada": "openURL",
+      "objeto": "Linking",
+      "tipo": "link_externo",
+      "explicacao": "vai para outro app ou site dentro da URL"
+    },
+    {
+      "chamada": "share",
+      "objeto": "Share",
+      "tipo": "link_externo",
+      "explicacao": "compartilha com outro app"
+    },
+    {
+      "chamada": "setStringAsync",
+      "objeto": "Clipboard",
+      "tipo": "area_de_transferencia",
+      "explicacao": "qualquer app lê a área de transferência"
+    },
+    {
+      "chamada": "setItem",
+      "objeto": "AsyncStorage",
+      "tipo": "armazenamento_sem_cifra",
+      "explicacao": "fica em texto puro no aparelho"
+    },
+    {
+      "chamada": "scheduleNotificationAsync",
+      "objeto": "Notifications",
+      "tipo": "notificacao",
+      "explicacao": "aparece na tela bloqueada"
+    }
+  ],
+  "sanitizadores": [
+    {
+      "chamada": "digestStringAsync",
+      "explicacao": "vira hash (SHA-256)"
+    },
+    {
+      "chamada": "hash",
+      "explicacao": "vira hash"
+    },
+    {
+      "chamada": "toFixed",
+      "rotulos": [
+        "localizacao"
+      ],
+      "explicacao": "arredonda a posição (4 casas, uns 11 m)"
+    },
+    {
+      "chamada": "conteudoLembrete",
+      "condicional": true,
+      "explicacao": "no modo discreto o texto vira 'Lembrete', sem nome"
+    },
+    {
+      "chamada": "conteudoConsulta",
+      "condicional": true,
+      "explicacao": "no modo discreto o texto vira 'Compromisso'"
+    },
+    {
+      "chamada": "planoDeNotificacoes",
+      "explicacao": "só horários e dias (sem nome nem anotação)"
+    },
+    {
+      "chamada": "proximaOcorrencia",
+      "explicacao": "só a data da próxima vez"
+    },
+    {
+      "chamada": "proximasOcorrencias",
+      "explicacao": "só datas"
+    },
+    {
+      "chamada": "textoFrequencia",
+      "explicacao": "texto como 'Todo dia às 20h00'"
+    },
+    {
+      "chamada": "validarLembrete",
+      "explicacao": "devolve só mensagens de erro"
+    },
+    {
+      "chamada": "validarConsulta",
+      "explicacao": "devolve só mensagens de erro"
+    },
+    {
+      "chamada": "avisoDaConsulta",
+      "explicacao": "só a data do aviso"
+    }
+  ],
+  "permitidos": [
+    {
+      "rotulo": "token_salas",
+      "tipo": "rede",
+      "explicacao": "o token das salas existe para ir à API C# (cabeçalho X-Token-Chat)"
+    },
+    {
+      "rotulo": "localizacao",
+      "tipo": "rede",
+      "so_sanitizado": true,
+      "explicacao": "'Perto de mim' manda a posição arredondada à API C#"
+    },
+    {
+      "rotulo": "agenda",
+      "tipo": "notificacao",
+      "so_sanitizado": true,
+      "explicacao": "notificação local no horário escolhido, com texto neutro no modo discreto"
+    },
+    {
+      "rotulo": "consultas",
+      "tipo": "notificacao",
+      "so_sanitizado": true,
+      "explicacao": "aviso local da consulta, com texto neutro no modo discreto"
+    }
+  ],
+  "campos_neutros": [
+    "id",
+    "ativo",
+    "length",
+    "hora",
+    "minuto",
+    "frequencia",
+    "intervaloDias",
+    "diasSemana"
+  ],
+  "descricao_campos_neutros": "Campos que não revelam saúde nem identificam a pessoa: o id local (autoincremento do SQLite), se está ativo e o horário escolhido.",
+  "chamadas_que_nao_propagam": [
+    "ler",
+    "lerPreferencia",
+    "lerDoCache",
+    "getFirstAsync",
+    "getAllAsync",
+    "runAsync",
+    "execAsync",
+    "withExclusiveTransactionAsync",
+    "openDatabaseAsync",
+    "getPermissionsAsync",
+    "requestPermissionsAsync",
+    "getAllScheduledNotificationsAsync",
+    "cancelScheduledNotificationAsync",
+    "canOpenURL"
+  ],
+  "descricao_chamadas_que_nao_propagam": "Leituras por chave: o que volta é o dado guardado, não a chave usada para buscar."
+}
