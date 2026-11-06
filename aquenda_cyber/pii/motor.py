@@ -33,6 +33,12 @@ CAMPOS_SENSIVEIS: dict[str, tuple[str, Sensibilidade]] = {
 CAMPOS_IGNORADOS = re.compile(r"(hash|_id$|^id$|slug|codigo_cnes|codigo_ibge|fonte|url|link|cep_servico)", re.IGNORECASE)
 
 
+def _exemplo(valor: str) -> bool:
+    from .regras import EXEMPLO
+
+    return bool(EXEMPLO.search(valor))
+
+
 def _chave_normal(chave: str) -> str:
     return re.sub(r"[^a-z0-9]+", "_", sem_acento(chave)).strip("_")
 
@@ -83,7 +89,7 @@ class MotorPII:
                 chave = _chave_normal(str(k))
                 if CAMPOS_IGNORADOS.search(chave):
                     continue
-                if chave in CAMPOS_SENSIVEIS and isinstance(v, (str, int)) and str(v).strip():
+                if chave in CAMPOS_SENSIVEIS and isinstance(v, (str, int)) and str(v).strip() and not _exemplo(str(v)):
                     nome, sens = CAMPOS_SENSIVEIS[chave]
                     achados.append(
                         Achado(chave, nome, sens, 0, len(str(v)), mascarar_tudo(str(v)), 0.9,

@@ -1,0 +1,8 @@
+texto  CPF: •••.•••.•••-25  (95%) Número de 11 dígitos com dígitos verificadores de CPF válidos. Palavra de contexto por perto.
+texto  Dado de saúde: •••••••••  (95%) Medicamento (estradiol) com dose por perto: diz o tratamento de alguém.
+texto  Nome de registro (nome morto): J•••  (95%) Nome de registro de uma pessoa trans, escrito ao lado de 'nome de registro' ou 'nome morto'.
+texto  Cartão Nacional de Saúde (CNS): •••••••••••••00  (95%) Número de 15 dígitos que passa na verificação do Cartão SUS. Liga a pessoa ao prontuário do SUS. Palavra de contexto por perto.
+texto  Senha ou PIN: •••••••••  (90%) Valor escrito logo depois de 'senha' ou 'PIN'.
+
+5 achado(s): {'cpf': 1, 'saude': 1, 'nome_registro': 1, 'cns': 1, 'senha': 1}
+Redigido: Oi, sou a Bia, CPF [CPF], tomo [DADO DE SAÚDE] 2mg desde março e meu nome de registro é [NOME DE REGISTRO (NOME MORTO)]. Meu cartão do SUS: [CARTÃO NACIONAL DE SAÚDE (CNS)]. Senha: [SENHA OU PIN]

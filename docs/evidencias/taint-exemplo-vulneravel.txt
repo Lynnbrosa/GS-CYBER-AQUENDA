@@ -1,0 +1,56 @@
+5 arquivos, 21 funções com resumo, ponto fixo em 2 rodadas
+12 fontes de dado sensível encontradas
+  [VIOLAÇÃO ] agenda       -> rede                     src/app/agenda/formulario.tsx:8
+               src/app/agenda/formulario.tsx:5 fonte: o que a pessoa digita no formulário da agenda
+               src/app/agenda/formulario.tsx:5 estado do formulário
+               src/app/agenda/formulario.tsx:7 .anotacao
+               src/app/agenda/formulario.tsx:8 stringify()
+               src/app/agenda/formulario.tsx:8 sai por fetch()
+  [VIOLAÇÃO ] localizacao  -> rede                     src/posicao.ts:21
+               src/posicao.ts:19 fonte: posição do celular
+               src/posicao.ts:19 = p
+               src/posicao.ts:20 .lat
+               src/posicao.ts:21 sai por fetch()
+  [VIOLAÇÃO ] localizacao  -> rede                     src/posicao.ts:8
+               src/posicao.ts:7 fonte: posição do celular
+               src/posicao.ts:7 = p
+               src/posicao.ts:8 sai por fetch()
+  [VIOLAÇÃO ] agenda       -> rede                     src/util.ts:6
+               src/vazamentos.ts:15 fonte: lembretes de hormônio lidos do SQLite
+               src/vazamentos.ts:15 entra em resumoDoDia()
+               src/util.ts:2 parâmetro
+               src/util.ts:3 map()
+               src/util.ts:3 join()
+               src/util.ts:3 retorna
+               src/vazamentos.ts:15 = texto
+               src/vazamentos.ts:16 entra em enviar()
+               src/util.ts:5 parâmetro
+               src/util.ts:6 stringify()
+               src/util.ts:6 sai por fetch()
+  [VIOLAÇÃO ] agenda       -> rede                     src/vazamentos.ts:10
+               src/vazamentos.ts:9 fonte: lembretes de hormônio lidos do SQLite
+               src/vazamentos.ts:9 = lembretes
+               src/vazamentos.ts:10 stringify()
+               src/vazamentos.ts:10 sai por fetch()
+  [VIOLAÇÃO ] consultas    -> link_externo             src/vazamentos.ts:22
+               src/vazamentos.ts:21 fonte: uma consulta médica
+               src/vazamentos.ts:21 = c
+               src/vazamentos.ts:22 encodeURIComponent()
+               src/vazamentos.ts:22 sai por Linking.openURL()
+  [VIOLAÇÃO ] agenda       -> log                      src/vazamentos.ts:28
+               src/vazamentos.ts:27 fonte: lembretes de hormônio lidos do SQLite
+               src/vazamentos.ts:27 = [primeiro]
+               src/vazamentos.ts:28 sai por console.log()
+  [VIOLAÇÃO ] agenda       -> armazenamento_sem_cifra  src/vazamentos.ts:34
+               src/vazamentos.ts:33 fonte: lembretes de hormônio lidos do SQLite
+               src/vazamentos.ts:33 = lista
+               src/vazamentos.ts:34 stringify()
+               src/vazamentos.ts:34 sai por AsyncStorage.setItem()
+  [VIOLAÇÃO ] pin          -> log                      src/vazamentos.ts:39
+               src/vazamentos.ts:38 fonte: PIN digitado ao criar
+               src/vazamentos.ts:38 parâmetro
+               src/vazamentos.ts:39 sai por console.warn()
+  [permitido] localizacao  -> rede                     src/posicao.ts:14
+
+9 violação(ões), 1 fluxo(s) permitido(s) pela política
+exit 2

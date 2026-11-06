@@ -1,0 +1,6 @@
+2026-11-06 10:02:11 INFO  POST /api/chat/participantes 201
+2026-11-06 10:02:15 DEBUG corpo recebido: {"apelido":"Bia","nome_registro":"Marcos Paulo Lima","cpf":"52998224725"}
+2026-11-06 10:03:40 WARN  falha ao validar token Authorization: Bearer abcdefghijklmnopqrstuvwxyz0123456789
+2026-11-06 10:04:02 INFO  GET /api/servicos?lat=-23.543129&lon=-46.643012 200
+2026-11-06 10:05:20 DEBUG mensagem: tomo 2 mg de estradiol e fui diagnosticada com HIV
+2026-11-06 10:06:01 INFO  sincronizacao adzuna app_key=3c1f0a9be27d4f88a6c2d1e0f9b8a7c6

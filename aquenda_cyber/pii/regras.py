@@ -47,7 +47,7 @@ class Regra(ABC):
 
     def ha_contexto(self, texto_sa: str, inicio: int, fim: int, palavras: tuple[str, ...] | None = None) -> bool:
         trecho = texto_sa[max(0, inicio - JANELA) : fim + JANELA]
-        return any(re.search(rf"(?<![a-z]){re.escape(p)}", trecho) for p in (palavras or self.contexto))
+        return any(re.search(rf"(?<![a-z]){re.escape(p)}(?![a-z])" if not p.endswith(("d", "v")) or " " in p else rf"(?<![a-z]){re.escape(p)}", trecho) for p in (palavras or self.contexto))
 
     def encontrar(self, tn: TextoNormalizado) -> list[Achado]:
         texto_sa = sem_acento(tn.normal)
@@ -213,6 +213,7 @@ class RegraNascimento(RegraPorPadrao):
 # ---------------------------------------------------------------- credenciais
 
 
+EXEMPLO = re.compile(r"(teste|exemplo|example|fake|dummy|nao-e-real|placeholder|xxxx|changeme)", re.IGNORECASE)
 PLACEHOLDERS = re.compile(r"^(\*+|x+|•+|<[^>]*>|\$\{[^}]*\}|\{\{[^}]*\}\}|senha|password|changeme|\.\.\.)$", re.IGNORECASE)
 
 
@@ -262,6 +263,8 @@ class RegraToken(Regra):
                 # exige aleatoriedade, e segredo curto quase sempre mistura letra com número
                 if len(v) < 32 and (entropia_shannon(v) < 3.3 or v.replace("_", "").replace("-", "").isalpha()):
                     continue
+                if EXEMPLO.search(v) or re.fullmatch(r"[a-z]+(?:[._-][a-z]+)+", v):
+                    continue  # "TOKEN-DE-TESTE", "chave-de-exemplo", "aquenda.salas.participante"
                 saida.append(Candidato(m.start("valor"), m.end("valor"), v, conf, motivo))
         return saida
 
@@ -275,7 +278,7 @@ class RegraToken(Regra):
 ANCORAS_PESSOAIS = (
     "tomo", "tomei", "uso", "usei", "aplico", "apliquei", "faco", "fiz", "estou", "tenho", "tive",
     "meu", "minha", "meus", "minhas", "sou", "fui diagnosticad", "diagnosticad", "descobri", "comecei",
-    "paciente", "prontuario", "laudo", "receita", "prescri", "resultado", "positivo", "reagente",
+    "deu positivo", "deu reagente", "meu resultado",
     "ela tem", "ele tem", "elu tem", "dela", "dele", "delu",
 )
 
@@ -303,10 +306,16 @@ DOSE = re.compile(r"\b\d+(?:[.,]\d+)?\s?(?:mg|ml|mcg|µg|ui|ampolas?|comprimidos
 CID = re.compile(r"\bcid[- ]?(?:10|11)?\s*[:\-]?\s*(?P<valor>[a-z]\d{2}(?:\.\d{1,2})?|[a-z]{2}\d{2}(?:\.\d)?)\b", re.IGNORECASE)
 
 
+# Termos que são radical de palavra (casam com o começo: "soropositiva", "antirretrovirais").
+RADICAIS = {"soropositiv", "antirretrovira", "diagnosticad"}
+
+
 def _termos(texto_sa: str, termos: tuple[str, ...]) -> list[tuple[int, int, str]]:
+    """Acha o termo como palavra inteira ("prep" não casa com "preparar"), salvo os radicais."""
     achados = []
     for t in termos:
-        for m in re.finditer(rf"(?<![a-z]){re.escape(t)}", texto_sa):
+        fim = "" if t in RADICAIS else r"(?![a-z])"
+        for m in re.finditer(rf"(?<![a-z]){re.escape(t)}{fim}", texto_sa):
             achados.append((m.start(), m.end(), t))
     return achados
 

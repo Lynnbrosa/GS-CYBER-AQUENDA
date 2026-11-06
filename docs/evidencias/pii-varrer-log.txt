@@ -1,0 +1,7 @@
+exemplos/logs/api-com-vazamento.log:2  CPF: •••••••••25  (95%) Número de 11 dígitos com dígitos verificadores de CPF válidos. Palavra de contexto por perto.
+exemplos/logs/api-com-vazamento.log:3  Token ou chave de acesso: abcd••••••••••••••••••••••••••••••••  (90%) Token no cabeçalho Authorization.
+exemplos/logs/api-com-vazamento.log:5  Dado de saúde: •••••••••  (95%) Medicamento (estradiol) com dose por perto: diz o tratamento de alguém.
+exemplos/logs/api-com-vazamento.log:5  Dado de saúde: •••  (85%) Condição ou tratamento de saúde (hiv) ligado a uma pessoa.
+exemplos/logs/api-com-vazamento.log:6  Token ou chave de acesso: 3c1f••••••••••••••••••••••••••••  (85%) Valor aleatório ao lado do nome de uma chave ou token.
+
+5 achado(s): {'token': 2, 'saude': 2, 'cpf': 1}

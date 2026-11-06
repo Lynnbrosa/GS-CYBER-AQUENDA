@@ -1,0 +1,20 @@
+1) Rota sem guarda: devolve tudo como está
+
+== sem guarda: HTTP 200  x-aquenda-pii=-
+[{"id":1,"autor":"kiwi-azul","texto":"Comecei estradiol 2mg semana passada, alguém sentiu enjoo?"},{"id":2,"autor":"elefante-roxo","texto":"Meu CPF é 529.982.247-25, alguém sabe se o ambulatório pede?"},{"id":3,"autor":"kiwi-azul","texto":"Boa noite, gente!"}]
+
+2) GuardaDeSaida(modo='mascarar'): o dado sensível sai mascarado
+
+== mascarar: HTTP 200  x-aquenda-pii=2
+[{"id": 1, "autor": "kiwi-azul", "texto": "Comecei [DADO DE SAÚDE] 2mg semana passada, alguém sentiu enjoo?"}, {"id": 2, "autor": "elefante-roxo", "texto": "Meu CPF é [CPF], alguém sabe se o ambulatório pede?"}, {"id": 3, "autor": "kiwi-azul", "texto": "Boa noite, gente!"}]
+
+3) GuardaDeSaida(modo='bloquear'): a resposta inteira é barrada
+
+== bloquear: HTTP 502  x-aquenda-pii=2
+{"type": "about:blank", "title": "Resposta bloqueada", "status": 502, "detail": "A resposta tinha dado pessoal e não saiu do servidor.", "tipos": ["CPF", "Dado de saúde"]}
+
+4) saida_segura() antes de mandar para um destino inseguro
+VazamentoBloqueado: Saída para analytics bloqueada: contém Dado de saúde.
+
+5) FiltroPII no logging: o log grava a versão mascarada
+INFO Login de [CPF] com Bearer [TOKEN OU CHAVE DE ACESSO]

@@ -192,6 +192,9 @@ def test_saude_ligada_a_pessoa_e_dado_sensivel(texto):
         "O CTA faz testagem de HIV e sífilis de graça",
         "Ambulatório e hormônio (habilitação 30.02)",
         "Ninguém aqui indica dose: isso é com a equipe de saúde.",
+        # falsos positivos reais achados na auditoria das vagas da Gupy:
+        "Preparar o paciente para o atendimento; preparar modelos em gesso",
+        "Atender pacientes do CAPS utilizando procedimentos específicos",
     ],
 )
 def test_saude_como_servico_publico_nao_e_dado_pessoal(texto):

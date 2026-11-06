@@ -1,0 +1,256 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Aquenda · Risco Cidadão</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Atkinson+Hyperlegible:wght@400;700&family=Fredoka:wght@600&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --papel: #ffffff; --superficie: #f7f2ec; --superficie-forte: #eee5da; --linha: #e9dfd3;
+    --tinta: #3a2a1f; --tinta-suave: #6b5847; --acao: #2c61a3;
+    --bom: #0ca30c; --atencao: #fab219; --serio: #ec835a; --critico: #d03b3b;
+    --grade: #e1e0d9; --eixo: #c3c2b7;
+    --titulo: "Fredoka", "Trebuchet MS", sans-serif;
+    --corpo: "Atkinson Hyperlegible", "Segoe UI", system-ui, sans-serif;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root { --papel: #1c1612; --superficie: #2a221c; --superficie-forte: #352b23; --linha: #3d332a; --tinta: #f5eee6; --tinta-suave: #cdbfb1; --acao: #9cc3ec; --grade: #2c2c2a; --eixo: #383835; }
+  }
+  * { box-sizing: border-box; }
+  body { margin: 0; background: var(--papel); color: var(--tinta); font: 17px/1.5 var(--corpo); }
+  main { max-width: 1080px; margin: 0 auto; padding: 24px 20px 64px; display: grid; gap: 28px; }
+  h1, h2, h3 { font-family: var(--titulo); font-weight: 600; margin: 0; line-height: 1.15; }
+  h1 { font-size: 30px; } h2 { font-size: 22px; } h3 { font-size: 18px; }
+  p { margin: 0; }
+  .suave { color: var(--tinta-suave); }
+  .topo { display: flex; align-items: center; gap: 16px; flex-wrap: wrap; }
+  .topo img { width: 56px; height: 56px; object-fit: contain; }
+  .topo .titulo { flex: 1; min-width: 220px; }
+  .alternador { display: inline-flex; background: var(--superficie); border-radius: 999px; padding: 4px; }
+  .alternador button { border: 0; background: transparent; color: var(--tinta); font: 700 15px var(--corpo); padding: 10px 16px; border-radius: 999px; cursor: pointer; min-height: 44px; }
+  .alternador button[aria-pressed="true"] { background: var(--tinta); color: var(--papel); }
+  .botao { border: 0; background: var(--acao); color: #fff; font: 700 15px var(--corpo); padding: 12px 20px; border-radius: 999px; cursor: pointer; min-height: 44px; }
+  @media (prefers-color-scheme: dark) { .botao { color: #0c1e33; } }
+  .botao[disabled] { opacity: .55; cursor: progress; }
+  button:focus-visible, summary:focus-visible { outline: 3px solid var(--acao); outline-offset: 2px; }
+
+  .heroi { display: grid; grid-template-columns: minmax(240px, 1fr) 2fr; gap: 24px; align-items: center; background: var(--superficie); border-radius: 24px; padding: 28px; }
+  @media (max-width: 760px) { .heroi { grid-template-columns: 1fr; } }
+  .numero { font-family: var(--corpo); font-weight: 700; font-size: 72px; line-height: 1; letter-spacing: -1px; }
+  .numero small { font-size: 22px; font-weight: 400; color: var(--tinta-suave); letter-spacing: 0; }
+  .nivel { display: inline-flex; align-items: center; gap: 8px; font-weight: 700; margin-top: 8px; }
+  .medidor { height: 12px; border-radius: 999px; background: var(--superficie-forte); overflow: hidden; margin: 14px 0 6px; }
+  .medidor > div { height: 100%; border-radius: 999px; }
+  .escala { display: flex; justify-content: space-between; font-size: 13px; color: var(--tinta-suave); }
+
+  .componentes { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; }
+  @media (max-width: 760px) { .componentes { grid-template-columns: 1fr; } }
+  .componente { border: 1px solid var(--linha); border-radius: 18px; padding: 18px; display: grid; gap: 6px; }
+  .componente .valor { font-weight: 700; font-size: 34px; line-height: 1; }
+
+  .alertas { display: grid; gap: 14px; }
+  .alerta { border: 1px solid var(--linha); border-radius: 18px; padding: 20px; display: grid; gap: 10px; }
+  .alerta header { display: flex; gap: 10px; align-items: flex-start; }
+  .alerta header h3 { flex: 1; }
+  .rotulo { display: inline-flex; align-items: center; gap: 6px; font-size: 14px; font-weight: 700; white-space: nowrap; }
+  .alerta ol { margin: 0; padding-left: 20px; }
+  .aviso { background: var(--superficie); border-radius: 12px; padding: 10px 14px; font-style: normal; }
+  .origem-ia { font-size: 13px; color: var(--tinta-suave); }
+  .duas { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+  @media (max-width: 760px) { .duas { grid-template-columns: 1fr; } }
+
+  .grafico { position: relative; }
+  .grafico svg { width: 100%; height: 200px; display: block; }
+  .dica { position: absolute; pointer-events: none; background: var(--tinta); color: var(--papel); font-size: 13px; padding: 6px 10px; border-radius: 8px; transform: translate(-50%, -120%); white-space: nowrap; display: none; }
+
+  table { width: 100%; border-collapse: collapse; font-size: 15px; }
+  th { text-align: left; font-weight: 700; color: var(--tinta-suave); border-bottom: 1px solid var(--eixo); padding: 8px 6px; }
+  td { border-bottom: 1px solid var(--linha); padding: 8px 6px; vertical-align: top; }
+  td.num { text-align: right; font-variant-numeric: tabular-nums; }
+  code { font-size: 13px; background: var(--superficie); padding: 1px 6px; border-radius: 6px; word-break: break-all; }
+  details { border: 1px solid var(--linha); border-radius: 18px; padding: 14px 18px; }
+  summary { cursor: pointer; font-weight: 700; min-height: 32px; }
+  .vazio { border: 1px dashed var(--linha); border-radius: 18px; padding: 22px; text-align: center; }
+  .carregando { opacity: .5; transition: opacity .2s; }
+</style>
+</head>
+<body>
+<main id="conteudo" aria-live="polite">
+  <header class="topo">
+    <img src="/logo.png" alt="Logo do Aquenda: elefante de kiwi fazendo a letra a">
+    <div class="titulo">
+      <h1>Risco Cidadão</h1>
+      <p class="suave">O quanto o Aquenda expõe hoje quem usa o app.</p>
+    </div>
+    <div class="alternador" role="group" aria-label="O que auditar">
+      <button type="button" data-alvo="prototipo" aria-pressed="true">Protótipo</button>
+      <button type="button" data-alvo="exemplo" aria-pressed="false">Exemplo com falhas</button>
+    </div>
+    <button type="button" class="botao" id="rodar">Rodar auditoria</button>
+  </header>
+
+  <section class="heroi" aria-labelledby="h-indice">
+    <div>
+      <h2 id="h-indice" class="suave" style="font-family:var(--corpo);font-size:15px;font-weight:700">Índice de Risco Cidadão</h2>
+      <div class="numero" id="indice">–<small> / 100</small></div>
+      <div class="nivel" id="nivel"></div>
+      <div class="medidor" role="img" id="medidor-rotulo"><div id="medidor"></div></div>
+      <div class="escala" aria-hidden="true"><span>0 baixo</span><span>20 moderado</span><span>50 alto</span><span>80 crítico</span></div>
+    </div>
+    <div>
+      <p id="resumo"></p>
+      <p class="suave" id="quando" style="margin-top:8px;font-size:14px"></p>
+    </div>
+  </section>
+
+  <section aria-labelledby="h-comp">
+    <h2 id="h-comp" style="margin-bottom:12px">Por parte do Aquenda</h2>
+    <div class="componentes" id="componentes"></div>
+  </section>
+
+  <section aria-labelledby="h-alertas">
+    <h2 id="h-alertas" style="margin-bottom:4px">O que isso significa para as pessoas</h2>
+    <p class="suave" style="margin-bottom:14px">Cada falha traduzida em risco real e no que fazer. A IA recebe só a evidência mascarada, nunca o dado.</p>
+    <div class="alertas" id="alertas"></div>
+  </section>
+
+  <section class="duas">
+    <div>
+      <h2 style="margin-bottom:12px">Índice ao longo das auditorias</h2>
+      <div class="grafico" id="grafico"><div class="dica" id="dica" role="tooltip"></div></div>
+    </div>
+    <div>
+      <h2 style="margin-bottom:12px">O que rodou</h2>
+      <table aria-label="Fontes da auditoria"><tbody id="fontes"></tbody></table>
+    </div>
+  </section>
+
+  <section aria-labelledby="h-falhas">
+    <h2 id="h-falhas" style="margin-bottom:12px">Falhas técnicas</h2>
+    <div style="overflow-x:auto"><table aria-describedby="h-falhas">
+      <thead><tr><th>Dado</th><th>Onde</th><th>Sai por</th><th>Evidência (mascarada)</th><th class="num">Vezes</th><th class="num">Pontos</th></tr></thead>
+      <tbody id="falhas"></tbody>
+    </table></div>
+  </section>
+
+  <details>
+    <summary id="controles-titulo">Controles verificados</summary>
+    <p class="suave" style="margin:8px 0">Fluxos de dado sensível que o taint analysis seguiu até uma saída e confirmou que estão protegidos.</p>
+    <table><thead><tr><th>Fluxo</th><th>Onde</th><th>Por que é seguro</th></tr></thead><tbody id="controles"></tbody></table>
+  </details>
+</main>
+
+<script>
+const STATUS = {
+  baixo: { cor: "var(--bom)", icone: "✓", texto: "Baixo" },
+  moderado: { cor: "var(--atencao)", icone: "!", texto: "Moderado" },
+  alto: { cor: "var(--serio)", icone: "▲", texto: "Alto" },
+  "crítico": { cor: "var(--critico)", icone: "✕", texto: "Crítico" },
+};
+const GRAVIDADE = { baixa: "baixo", media: "moderado", alta: "alto", critica: "crítico" };
+const NOME_COMP = { app: "App no celular", api_csharp: "API C#", api_soa: "FastAPI" };
+const SAIDA = { resposta_api: "resposta da API", rede: "rede", link_externo: "link externo", log: "log", banco_servidor: "banco do servidor", repositorio: "repositório", armazenamento_sem_cifra: "armazenamento sem cifra", notificacao: "notificação", area_de_transferencia: "área de transferência" };
+let alvo = new URLSearchParams(location.search).get("alvo") === "exemplo" ? "exemplo" : "prototipo";
+
+const esc = (s) => String(s ?? "").replace(/[&<>"]/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]));
+
+function selo(nivel) {
+  const s = STATUS[nivel] ?? STATUS.baixo;
+  return `<span class="rotulo"><svg width="18" height="18" viewBox="0 0 18 18" aria-hidden="true"><circle cx="9" cy="9" r="9" fill="${s.cor}"/><text x="9" y="13" text-anchor="middle" font-size="11" font-weight="700" fill="${nivel === "moderado" ? "#0b0b0b" : "#fff"}">${s.icone}</text></svg>${s.texto}</span>`;
+}
+
+function desenharGrafico(historico) {
+  const caixa = document.getElementById("grafico");
+  caixa.querySelector("svg")?.remove();
+  if (historico.length < 2) {
+    caixa.insertAdjacentHTML("afterbegin", `<p class="vazio suave">Rode mais auditorias para ver a tendência.</p>`);
+    return;
+  }
+  caixa.querySelector(".vazio")?.remove();
+  const L = 600, A = 200, m = { e: 34, d: 12, c: 12, b: 26 };
+  const x = (i) => m.e + (i / (historico.length - 1)) * (L - m.e - m.d);
+  const y = (v) => m.c + (1 - v / 100) * (A - m.c - m.b);
+  const pontos = historico.map((h, i) => [x(i), y(h.indice)]);
+  const grade = [0, 20, 50, 80, 100].map((v) => `<line x1="${m.e}" x2="${L - m.d}" y1="${y(v)}" y2="${y(v)}" stroke="var(--grade)" stroke-width="1"/><text x="${m.e - 6}" y="${y(v) + 4}" text-anchor="end" font-size="11" fill="var(--tinta-suave)">${v}</text>`).join("");
+  const caminho = pontos.map((p, i) => `${i ? "L" : "M"}${p[0].toFixed(1)},${p[1].toFixed(1)}`).join(" ");
+  const marcas = pontos.map((p, i) => `<circle cx="${p[0]}" cy="${p[1]}" r="4" fill="var(--acao)" stroke="var(--papel)" stroke-width="2"/><rect x="${p[0] - 14}" y="${m.c}" width="28" height="${A - m.c - m.b}" fill="transparent" data-i="${i}" tabindex="0" aria-label="Auditoria ${i + 1}: índice ${historico[i].indice}"/>`).join("");
+  caixa.insertAdjacentHTML("afterbegin", `<svg viewBox="0 0 ${L} ${A}" role="img" aria-label="Índice de Risco Cidadão em ${historico.length} auditorias, de ${historico[0].indice} a ${historico.at(-1).indice}">${grade}<line x1="${m.e}" x2="${L - m.d}" y1="${y(0)}" y2="${y(0)}" stroke="var(--eixo)"/><path d="${caminho}" fill="none" stroke="var(--acao)" stroke-width="2" stroke-linejoin="round"/>${marcas}</svg>`);
+  const dica = document.getElementById("dica");
+  caixa.querySelectorAll("rect[data-i]").forEach((r) => {
+    const mostrar = () => {
+      const h = historico[+r.dataset.i];
+      const b = caixa.getBoundingClientRect(), rb = r.getBoundingClientRect();
+      dica.textContent = `${new Date(h.quando).toLocaleString("pt-BR")}: ${h.indice} (${h.falhas} falhas)`;
+      dica.style.left = rb.left - b.left + rb.width / 2 + "px";
+      dica.style.top = (pontos[+r.dataset.i][1] / A) * b.height + "px";
+      dica.style.display = "block";
+    };
+    r.addEventListener("mouseenter", mostrar); r.addEventListener("focus", mostrar);
+    r.addEventListener("mouseleave", () => (dica.style.display = "none")); r.addEventListener("blur", () => (dica.style.display = "none"));
+  });
+}
+
+function render(d) {
+  const a = d.auditoria;
+  document.getElementById("indice").innerHTML = `${a.indice}<small> / 100</small>`;
+  document.getElementById("nivel").innerHTML = selo(a.nivel);
+  const med = document.getElementById("medidor");
+  med.style.width = Math.max(2, a.indice) + "%";
+  med.style.background = (STATUS[a.nivel] ?? STATUS.baixo).cor;
+  document.getElementById("medidor-rotulo").setAttribute("aria-label", `Índice ${a.indice} de 100, nível ${a.nivel}`);
+  const sens = a.falhas.filter((f) => f.sensibilidade === "dado_pessoal_sensivel").length;
+  document.getElementById("resumo").innerHTML = a.falhas.length
+    ? `<strong>${a.falhas.length} ${a.falhas.length === 1 ? "falha" : "falhas"}</strong>, ${sens} com dado sensível (saúde, identidade de gênero). ${a.controles.length} fluxos de dado sensível verificados e protegidos.`
+    : `<strong>Nenhuma falha encontrada.</strong> ${a.controles.length} fluxos de dado sensível verificados e protegidos.`;
+  document.getElementById("quando").textContent = `Auditoria de ${new Date(a.quando).toLocaleString("pt-BR")}`;
+
+  document.getElementById("componentes").innerHTML = ["app", "api_csharp", "api_soa"].map((c) => {
+    const p = a.por_componente[c] ?? { indice: 0, nivel: "baixo", falhas: 0 };
+    return `<article class="componente" aria-label="${NOME_COMP[c]}: índice ${p.indice}, ${p.nivel}"><h3>${NOME_COMP[c]}</h3><div class="valor">${p.indice}</div>${selo(p.nivel)}<p class="suave" style="font-size:14px">${p.falhas} ${p.falhas === 1 ? "falha" : "falhas"}</p></article>`;
+  }).join("");
+
+  const porId = Object.fromEntries(a.falhas.map((f) => [f.id, f]));
+  document.getElementById("alertas").innerHTML = d.alertas.length ? d.alertas.map((g) => {
+    const al = g.alerta, f = porId[g.falha_id] ?? {};
+    const origem = g.gerado_por === "claude" ? `Traduzido pelo Claude (${esc(g.modelo)})` : `Tradutor local${g.observacao ? `: ${esc(g.observacao)}` : ""}`;
+    return `<article class="alerta"><header><h3>${esc(al.titulo)}</h3>${selo(GRAVIDADE[al.gravidade])}</header>
+      <p>${esc(al.risco_para_a_pessoa)}</p>
+      <p class="suave"><strong>Quem é afetado:</strong> ${esc(al.quem_e_afetado)} · <code>${esc(f.origem)}</code></p>
+      <div><strong>Como corrigir</strong><ol>${al.como_corrigir.map((p) => `<li>${esc(p)}</li>`).join("")}</ol></div>
+      <p class="aviso"><strong>Aviso no app:</strong> ${esc(al.aviso_no_app)}</p>
+      <p class="origem-ia">${origem}</p></article>`;
+  }).join("") : `<p class="vazio suave">Nada a traduzir: nenhuma falha nesta auditoria.</p>`;
+
+  document.getElementById("falhas").innerHTML = a.falhas.length ? a.falhas.map((f) => `<tr><td>${esc(f.nome_dado)}<br><span class="suave" style="font-size:13px">${NOME_COMP[f.componente]}</span></td><td><code>${esc(f.origem)}</code></td><td>${SAIDA[f.exposicao] ?? esc(f.exposicao)}</td><td><code>${esc(f.evidencia)}</code></td><td class="num">${f.ocorrencias}</td><td class="num">${f.pontos.toFixed(1)}</td></tr>`).join("") : `<tr><td colspan="6" class="suave">Nenhuma falha.</td></tr>`;
+
+  document.getElementById("fontes").innerHTML = Object.entries(a.fontes).map(([k, v]) => `<tr><td>${esc(k.replaceAll("_", " "))}</td><td class="suave">${esc(v)}</td></tr>`).join("");
+  document.getElementById("controles-titulo").textContent = `Controles verificados (${a.controles.length})`;
+  document.getElementById("controles").innerHTML = a.controles.map((c) => `<tr><td>${esc(c.o_que)}</td><td><code>${esc(c.onde)}</code></td><td class="suave">${esc(c.por_que)}</td></tr>`).join("");
+  desenharGrafico(d.historico);
+}
+
+async function carregar(metodo = "GET") {
+  const conteudo = document.getElementById("conteudo");
+  const botao = document.getElementById("rodar");
+  conteudo.classList.add("carregando"); botao.disabled = true; botao.textContent = metodo === "POST" ? "Auditando…" : "Carregando…";
+  try {
+    const r = await fetch(metodo === "POST" ? `/api/auditar?alvo=${alvo}` : `/api/painel?alvo=${alvo}`, { method: metodo });
+    render(await r.json());
+  } finally {
+    conteudo.classList.remove("carregando"); botao.disabled = false; botao.textContent = "Rodar auditoria";
+  }
+}
+
+document.querySelectorAll("[data-alvo]").forEach((b) => b.addEventListener("click", () => {
+  alvo = b.dataset.alvo;
+  document.querySelectorAll("[data-alvo]").forEach((x) => x.setAttribute("aria-pressed", String(x === b)));
+  carregar();
+}));
+document.getElementById("rodar").addEventListener("click", () => carregar("POST"));
+document.querySelectorAll("[data-alvo]").forEach((x) => x.setAttribute("aria-pressed", String(x.dataset.alvo === alvo)));
+carregar();
+</script>
+</body>
+</html>

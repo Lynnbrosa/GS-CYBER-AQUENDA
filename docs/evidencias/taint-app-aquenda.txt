@@ -1,0 +1,22 @@
+52 arquivos, 259 funções com resumo, ponto fixo em 3 rodadas
+33 fontes de dado sensível encontradas
+  [permitido] token_salas  -> rede                     src/lib/api/chat.ts:34
+  [permitido] token_salas  -> rede                     src/lib/api/chat.ts:42
+  [permitido] localizacao  -> rede                     src/lib/api/csharp.ts:49
+  [permitido] localizacao  -> rede                     src/lib/api/csharp.ts:49
+  [permitido] token_salas  -> rede                     src/lib/api/http.ts:75
+  [permitido] localizacao  -> rede                     src/lib/api/http.ts:75
+  [permitido] agenda       -> notificacao              src/lib/notificacoes.ts:77
+  [permitido] consultas    -> notificacao              src/lib/notificacoes.ts:77
+  [permitido] agenda       -> notificacao              src/lib/notificacoes.ts:77
+  [permitido] consultas    -> notificacao              src/lib/notificacoes.ts:77
+  [permitido] agenda       -> notificacao              src/lib/notificacoes.ts:77
+  [permitido] agenda       -> notificacao              src/lib/notificacoes.ts:96
+  [permitido] consultas    -> notificacao              src/lib/notificacoes.ts:96
+  [permitido] agenda       -> notificacao              src/lib/notificacoes.ts:96
+  [permitido] consultas    -> notificacao              src/lib/notificacoes.ts:96
+  [permitido] agenda       -> notificacao              src/lib/notificacoes.ts:96
+  [permitido] consultas    -> notificacao              src/lib/notificacoes.ts:96
+
+0 violação(ões), 17 fluxo(s) permitido(s) pela política
+exit 0

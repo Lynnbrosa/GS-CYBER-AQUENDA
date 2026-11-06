@@ -1,0 +1,248 @@
+{
+  "app": "vulneravel",
+  "arquivos_analisados": 5,
+  "funcoes_com_resumo": 21,
+  "rodadas_ate_ponto_fixo": 2,
+  "fontes": [
+    {
+      "rotulo": "localizacao",
+      "onde": "src/posicao.ts:7",
+      "explicacao": "posição do celular"
+    },
+    {
+      "rotulo": "localizacao",
+      "onde": "src/posicao.ts:13",
+      "explicacao": "posição do celular"
+    },
+    {
+      "rotulo": "localizacao",
+      "onde": "src/posicao.ts:19",
+      "explicacao": "posição do celular"
+    },
+    {
+      "rotulo": "localizacao",
+      "onde": "src/posicao.ts:26",
+      "explicacao": "posição do celular"
+    },
+    {
+      "rotulo": "agenda",
+      "onde": "src/vazamentos.ts:9",
+      "explicacao": "lembretes de hormônio lidos do SQLite"
+    },
+    {
+      "rotulo": "agenda",
+      "onde": "src/vazamentos.ts:15",
+      "explicacao": "lembretes de hormônio lidos do SQLite"
+    },
+    {
+      "rotulo": "consultas",
+      "onde": "src/vazamentos.ts:21",
+      "explicacao": "uma consulta médica"
+    },
+    {
+      "rotulo": "agenda",
+      "onde": "src/vazamentos.ts:27",
+      "explicacao": "lembretes de hormônio lidos do SQLite"
+    },
+    {
+      "rotulo": "agenda",
+      "onde": "src/vazamentos.ts:33",
+      "explicacao": "lembretes de hormônio lidos do SQLite"
+    },
+    {
+      "rotulo": "pin",
+      "onde": "src/vazamentos.ts:38",
+      "explicacao": "PIN digitado ao criar"
+    },
+    {
+      "rotulo": "agenda",
+      "onde": "src/vazamentos.ts:55",
+      "explicacao": "lembretes de hormônio lidos do SQLite"
+    },
+    {
+      "rotulo": "agenda",
+      "onde": "src/app/agenda/formulario.tsx:5",
+      "explicacao": "o que a pessoa digita no formulário da agenda"
+    }
+  ],
+  "fluxos": [
+    {
+      "rotulo": "agenda",
+      "sumidouro": "rede",
+      "chamada": "fetch",
+      "onde": "src/app/agenda/formulario.tsx:8",
+      "fonte": "src/app/agenda/formulario.tsx:5 fonte: o que a pessoa digita no formulário da agenda",
+      "veredito": "violacao",
+      "sanitizado": false,
+      "porque": "Dado de agenda chega a rede: sai do celular pela internet.",
+      "trilha": [
+        "src/app/agenda/formulario.tsx:5 fonte: o que a pessoa digita no formulário da agenda",
+        "src/app/agenda/formulario.tsx:5 estado do formulário",
+        "src/app/agenda/formulario.tsx:7 .anotacao",
+        "src/app/agenda/formulario.tsx:8 stringify()",
+        "src/app/agenda/formulario.tsx:8 sai por fetch()"
+      ]
+    },
+    {
+      "rotulo": "localizacao",
+      "sumidouro": "rede",
+      "chamada": "fetch",
+      "onde": "src/posicao.ts:21",
+      "fonte": "src/posicao.ts:19 fonte: posição do celular",
+      "veredito": "violacao",
+      "sanitizado": false,
+      "porque": "Só é permitido depois de limpar o dado ('Perto de mim' manda a posição arredondada à API C#), e aqui ele chega cru.",
+      "trilha": [
+        "src/posicao.ts:19 fonte: posição do celular",
+        "src/posicao.ts:19 = p",
+        "src/posicao.ts:20 .lat",
+        "src/posicao.ts:21 sai por fetch()"
+      ]
+    },
+    {
+      "rotulo": "localizacao",
+      "sumidouro": "rede",
+      "chamada": "fetch",
+      "onde": "src/posicao.ts:8",
+      "fonte": "src/posicao.ts:7 fonte: posição do celular",
+      "veredito": "violacao",
+      "sanitizado": false,
+      "porque": "Só é permitido depois de limpar o dado ('Perto de mim' manda a posição arredondada à API C#), e aqui ele chega cru.",
+      "trilha": [
+        "src/posicao.ts:7 fonte: posição do celular",
+        "src/posicao.ts:7 = p",
+        "src/posicao.ts:8 sai por fetch()"
+      ]
+    },
+    {
+      "rotulo": "agenda",
+      "sumidouro": "rede",
+      "chamada": "fetch",
+      "onde": "src/util.ts:6",
+      "fonte": "src/vazamentos.ts:15 fonte: lembretes de hormônio lidos do SQLite",
+      "veredito": "violacao",
+      "sanitizado": false,
+      "porque": "Dado de agenda chega a rede: sai do celular pela internet.",
+      "trilha": [
+        "src/vazamentos.ts:15 fonte: lembretes de hormônio lidos do SQLite",
+        "src/vazamentos.ts:15 entra em resumoDoDia()",
+        "src/util.ts:2 parâmetro",
+        "src/util.ts:3 map()",
+        "src/util.ts:3 join()",
+        "src/util.ts:3 retorna",
+        "src/vazamentos.ts:15 = texto",
+        "src/vazamentos.ts:16 entra em enviar()",
+        "src/util.ts:5 parâmetro",
+        "src/util.ts:6 stringify()",
+        "src/util.ts:6 sai por fetch()"
+      ]
+    },
+    {
+      "rotulo": "agenda",
+      "sumidouro": "rede",
+      "chamada": "fetch",
+      "onde": "src/vazamentos.ts:10",
+      "fonte": "src/vazamentos.ts:9 fonte: lembretes de hormônio lidos do SQLite",
+      "veredito": "violacao",
+      "sanitizado": false,
+      "porque": "Dado de agenda chega a rede: sai do celular pela internet.",
+      "trilha": [
+        "src/vazamentos.ts:9 fonte: lembretes de hormônio lidos do SQLite",
+        "src/vazamentos.ts:9 = lembretes",
+        "src/vazamentos.ts:10 stringify()",
+        "src/vazamentos.ts:10 sai por fetch()"
+      ]
+    },
+    {
+      "rotulo": "consultas",
+      "sumidouro": "link_externo",
+      "chamada": "Linking.openURL",
+      "onde": "src/vazamentos.ts:22",
+      "fonte": "src/vazamentos.ts:21 fonte: uma consulta médica",
+      "veredito": "violacao",
+      "sanitizado": false,
+      "porque": "Dado de consultas chega a link_externo: vai para outro app ou site dentro da URL.",
+      "trilha": [
+        "src/vazamentos.ts:21 fonte: uma consulta médica",
+        "src/vazamentos.ts:21 = c",
+        "src/vazamentos.ts:22 encodeURIComponent()",
+        "src/vazamentos.ts:22 sai por Linking.openURL()"
+      ]
+    },
+    {
+      "rotulo": "agenda",
+      "sumidouro": "log",
+      "chamada": "console.log",
+      "onde": "src/vazamentos.ts:28",
+      "fonte": "src/vazamentos.ts:27 fonte: lembretes de hormônio lidos do SQLite",
+      "veredito": "violacao",
+      "sanitizado": false,
+      "porque": "Dado de agenda chega a log: log do aparelho, lido por qualquer app de depuração e por relatórios de erro.",
+      "trilha": [
+        "src/vazamentos.ts:27 fonte: lembretes de hormônio lidos do SQLite",
+        "src/vazamentos.ts:27 = [primeiro]",
+        "src/vazamentos.ts:28 sai por console.log()"
+      ]
+    },
+    {
+      "rotulo": "agenda",
+      "sumidouro": "armazenamento_sem_cifra",
+      "chamada": "AsyncStorage.setItem",
+      "onde": "src/vazamentos.ts:34",
+      "fonte": "src/vazamentos.ts:33 fonte: lembretes de hormônio lidos do SQLite",
+      "veredito": "violacao",
+      "sanitizado": false,
+      "porque": "Dado de agenda chega a armazenamento_sem_cifra: fica em texto puro no aparelho.",
+      "trilha": [
+        "src/vazamentos.ts:33 fonte: lembretes de hormônio lidos do SQLite",
+        "src/vazamentos.ts:33 = lista",
+        "src/vazamentos.ts:34 stringify()",
+        "src/vazamentos.ts:34 sai por AsyncStorage.setItem()"
+      ]
+    },
+    {
+      "rotulo": "pin",
+      "sumidouro": "log",
+      "chamada": "console.warn",
+      "onde": "src/vazamentos.ts:39",
+      "fonte": "src/vazamentos.ts:38 fonte: PIN digitado ao criar",
+      "veredito": "violacao",
+      "sanitizado": false,
+      "porque": "Dado de pin chega a log: log do aparelho, lido por qualquer app de depuração e por relatórios de erro.",
+      "trilha": [
+        "src/vazamentos.ts:38 fonte: PIN digitado ao criar",
+        "src/vazamentos.ts:38 parâmetro",
+        "src/vazamentos.ts:39 sai por console.warn()"
+      ]
+    },
+    {
+      "rotulo": "localizacao",
+      "sumidouro": "rede",
+      "chamada": "fetch",
+      "onde": "src/posicao.ts:14",
+      "fonte": "src/posicao.ts:13 fonte: posição do celular",
+      "veredito": "permitido",
+      "sanitizado": true,
+      "porque": "'Perto de mim' manda a posição arredondada à API C#",
+      "trilha": [
+        "src/posicao.ts:13 fonte: posição do celular",
+        "src/posicao.ts:13 = p",
+        "src/posicao.ts:14 limpo por toFixed()",
+        "src/posicao.ts:14 sai por fetch()"
+      ]
+    }
+  ],
+  "resumo": {
+    "violacoes": 9,
+    "permitidos": 1,
+    "por_tipo": {
+      "agenda -> rede (violacao)": 3,
+      "localizacao -> rede (violacao)": 2,
+      "consultas -> link_externo (violacao)": 1,
+      "agenda -> log (violacao)": 1,
+      "agenda -> armazenamento_sem_cifra (violacao)": 1,
+      "pin -> log (violacao)": 1,
+      "localizacao -> rede (permitido)": 1
+    }
+  }
+}
