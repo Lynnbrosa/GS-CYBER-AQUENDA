@@ -133,7 +133,7 @@ Resultados:
 
 | Alvo | Arquivos | Funções | Violações | Fluxos permitidos |
 |---|---|---|---|---|
-| App Aquenda (`../GS-MOBILE-AQUENDA`) | 52 | 259 | **0** | 17 |
+| App Aquenda (`../GS-MOBILE-AQUENDA`) | 52 | 259 | **0** | 18 |
 | Exemplo com falhas (`taint_ts/exemplos/vulneravel`) | 5 | 21 | **9 de 9** | 1 |
 
 O exemplo tem nove vazamentos plantados e cinco casos limpos. A análise pega os nove e não marca nenhum caso limpo: agenda indo para a rede, para o `console.log` e para o AsyncStorage; consulta indo num link externo; PIN no log; GPS preciso indo para a rede; texto do formulário saindo por `fetch`. A trilha completa está em `docs/evidencias/taint-exemplo-vulneravel.txt`.
@@ -195,14 +195,18 @@ O painel segue boas práticas de visualização de dados:
 
 ### Resultado da auditoria do protótipo (06/11/2026)
 
-**Risco Cidadão 29/100, moderado.** App 0, FastAPI 0, API C# 50.
+A primeira auditoria deu **29/100, moderado**: app 0, FastAPI 0 e API C# 50, por causa de duas falhas.
 
-| Falha | Onde | Situação |
+| Falha | Onde | Correção |
 |---|---|---|
-| Dado de saúde nas mensagens das salas, lido por uma rota sem autenticação | `GET /api/chat/salas/{id}/mensagens` (API C#) | Aberta. O token de participante (`X-Token-Chat`) é exigido para enviar, mas não para ler. |
-| O mesmo texto guardado em claro | `aquenda.db: MensagensChat.Texto` | Aberta. Correção sugerida: cifrar a coluna ou guardar só o necessário, apagar no prazo (`Chat:DiasRetencao`) e restringir o acesso ao banco. |
+| Dado de saúde nas mensagens das salas, lido por uma rota sem autenticação | `GET /api/chat/salas/{id}/mensagens` (API C#) | A rota e o `EntrarNaSala` do SignalR passaram a pedir o token de participante (`X-Token-Chat`). Sem token, a rota responde 401 e a conexão não entra no grupo da sala. O app manda o token nos dois lugares. |
+| O mesmo texto guardado em claro | `aquenda.db: MensagensChat.Texto` | O texto agora é cifrado com AES-256-GCM antes de ir para o banco, com um conversor do EF Core. A chave vem de `Chat:ChaveCifra` ou de um arquivo `aquenda-chat.chave` ao lado do banco, nunca de dentro dele. As mensagens antigas são cifradas na inicialização. |
 
-Os dois alertas no painel trazem os passos de correção. Os 17 fluxos de dado sensível do app que a política permite (token das salas, coordenada arredondada, notificação com texto discreto) aparecem em "Controles verificados".
+Depois das correções, a auditoria deu **0/100, baixo** nos três componentes. O painel mostra a queda no histórico. Os 18 fluxos de dado sensível que a política permite (token das salas, coordenada arredondada, notificação com texto discreto) aparecem em "Controles verificados". Na linha da API C#, "O que rodou" mostra as rotas que agora pedem token.
+
+| Antes (29, moderado) | Depois (0, baixo) |
+|---|---|
+| ![Antes](docs/evidencias/painel-prototipo-antes.png) | ![Depois](docs/evidencias/painel-prototipo.png) |
 
 O exemplo com falhas dá **67/100, alto**: o app fica crítico com as 9 violações, e o log plantado tem CPF, token e dado de saúde.
 
@@ -212,9 +216,10 @@ Tudo em `docs/evidencias/`:
 
 | Arquivo | O que mostra |
 |---|---|
-| `painel-prototipo.png` | o painel do protótipo, com o índice Risco Cidadão |
+| `painel-prototipo-antes.png` | o painel do protótipo na primeira auditoria (29, moderado) |
+| `painel-prototipo.png` | o painel do protótipo depois das correções (0, baixo) |
 | `painel-exemplo.png` | o painel do exemplo com falhas |
-| `taint-app-aquenda.txt` | a taint analysis no app real: 0 violações, 17 fluxos permitidos |
+| `taint-app-aquenda.txt` | a taint analysis no app real: 0 violações, 18 fluxos permitidos |
 | `taint-exemplo-vulneravel.txt` e `.json` | as 9 violações com a trilha de cada uma |
 | `pii-varrer-texto.txt`, `pii-varrer-log.txt` | o motor de PII num texto e num log |
 | `guarda-demo.txt` | a resposta da API sem guarda, mascarada e bloqueada |
@@ -224,10 +229,10 @@ Tudo em `docs/evidencias/`:
 
 1. **0:00** O problema: no Aquenda, vazar o nome de registro ou a agenda de hormônio expõe a pessoa, e não só um CPF.
 2. **0:20** O motor de PII rodando no terminal (`varrer`) num texto com CPF, estradiol com dose e nome de registro, com o texto redigido.
-3. **0:50** A taint analysis no exemplo: as 9 violações e a trilha de uma delas, da agenda até o `fetch`. Depois no app real: zero violações e 17 fluxos permitidos.
+3. **0:50** A taint analysis no exemplo: as 9 violações e a trilha de uma delas, da agenda até o `fetch`. Depois no app real: zero violações e 18 fluxos permitidos.
 4. **1:30** As travas: `demo_guarda.py` mascarando e bloqueando com 502.
-5. **1:50** O painel: o índice 29 do protótipo, a falha do chat explicada para pessoas e a troca para o exemplo (67). Clicar em "Rodar auditoria" e ver o histórico mudar.
-6. **2:40** Fechamento: o que falta corrigir na API C# e como ligar o Claude.
+5. **1:50** O painel: a falha do chat no exemplo e na primeira auditoria (29), explicada para pessoas. Depois, a correção (token para ler e mensagem cifrada no banco) e um novo "Rodar auditoria": o índice cai para 0 e o histórico mostra a queda.
+6. **2:40** Fechamento: o exemplo com falhas (67) mostra o que o painel acha, e o Claude entra ligando a `ANTHROPIC_API_KEY`.
 
 ## Estrutura
 

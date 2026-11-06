@@ -196,10 +196,13 @@ def falhas_das_respostas(motor: MotorPII, rotas: dict[str, list[str]], tempo_lim
     falhas, estado = [], {}
     for componente, urls in rotas.items():
         achados: list[Achado] = []
-        ok = 0
+        ok = protegidas = 0
         for url in urls:
             try:
                 r = httpx.get(url, timeout=tempo_limite)
+                if r.status_code in (401, 403):
+                    protegidas += 1  # a rota pede credencial: sem ela, não entrega nada
+                    continue
                 if r.status_code != 200 or "json" not in r.headers.get("content-type", ""):
                     continue
                 ok += 1
@@ -209,7 +212,8 @@ def falhas_das_respostas(motor: MotorPII, rotas: dict[str, list[str]], tempo_lim
                         achados.append(_com_origem(a, f"{rota}:{a.origem}"))
             except httpx.HTTPError as e:
                 estado[componente] = f"fora do ar: {type(e).__name__}"
-        estado.setdefault(componente, f"{ok} de {len(urls)} rotas lidas")
+        protegido = f", {protegidas} pedem token" if protegidas else ""
+        estado.setdefault(componente, f"{ok} de {len(urls)} rotas lidas{protegido}")
         falhas += _agrupar(achados, componente, "pii_em_resposta", "resposta_api", "resposta da API", _rota_generica)
     return falhas, estado
 

@@ -70,4 +70,4 @@ tests/test_taint.py::test_trilha_mostra_o_caminho_entre_arquivos PASSED  [ 96%]
 tests/test_taint.py::test_app_real_nao_deixa_agenda_consulta_nem_pin_sairem PASSED [ 98%]
 tests/test_taint.py::test_mutacao_no_app_real_e_pega PASSED              [100%]
 
-============================= 63 passed in 14.01s =============================
+============================= 63 passed in 39.27s =============================
