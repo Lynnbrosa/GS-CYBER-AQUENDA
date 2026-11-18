@@ -205,6 +205,10 @@ Decisões:
 - **Sempre tem resposta.** Sem chave, sem rede, com limite de uso ou com recusa do modelo, o tradutor local gera o alerta com as mesmas regras de gravidade. O cartão do painel diz se o texto veio do Claude ou do tradutor local.
 - **Custo.** Usa `effort: low`, só traduz as 8 falhas mais graves por auditoria e guarda o resultado em cache.
 
+Rodado com a API de verdade em 17/11/2026: os 8 alertas do exemplo com falhas vieram do Claude (`"gerado_por": "claude"`, `"modelo": "claude-opus-5-5"`). A saída está em `docs/evidencias/ia-claude-auditoria.txt` e os alertas em `docs/evidencias/alertas-claude-exemplo.json`.
+
+![Painel com os alertas traduzidos pelo Claude](docs/evidencias/painel-exemplo-ia-claude.png)
+
 ## Dashboard executivo · Risco Cidadão
 
 A auditoria (`aquenda_cyber/auditoria.py`) junta tudo num modelo único de falha. Ela olha a taint analysis do app, as respostas das duas APIs, os dois bancos, os logs e o repositório. Cada falha ganha pontos:
@@ -248,13 +252,15 @@ O exemplo com falhas dá **78/100, alto**: o app fica crítico com as 9 violaç�
 
 ## Evidências
 
-O relatório completo da auditoria, em PDF, está em [`docs/Aquenda_Cyber_Auditoria.pdf`](docs/Aquenda_Cyber_Auditoria.pdf). As evidências estão todas em `docs/evidencias/`:
+O relatório completo da auditoria, em PDF, está em [`docs/Aquenda_Cyber_Auditoria.pdf`](docs/Aquenda_Cyber_Auditoria.pdf), com o trecho do código e a evidência de cada parte (PII, taint, IA e painel). As evidências estão todas em `docs/evidencias/`:
 
 | Arquivo | O que mostra |
 |---|---|
 | `painel-prototipo-antes.png` | o painel do protótipo na primeira auditoria (29, moderado) |
 | `painel-prototipo.png` | o painel do protótipo depois das correções (0, baixo) |
-| `painel-exemplo.png` | o painel do exemplo com falhas |
+| `painel-exemplo.png` | o painel do exemplo com falhas, inteiro |
+| `painel-exemplo-ia-claude.png` | o topo do painel do exemplo: o farol e o primeiro alerta traduzido pelo Claude |
+| `ia-claude-auditoria.txt` e `alertas-claude-exemplo.json` | a auditoria chamando a API do Claude e os 8 alertas que voltaram |
 | `taint-app-aquenda.txt` | a taint analysis no app real: 0 violações, 18 fluxos permitidos |
 | `taint-exemplo-vulneravel.txt` e `.json` | as 9 violações com a trilha de cada uma |
 | `pii-varrer-texto.txt`, `pii-varrer-log.txt` | o motor de PII num texto e num log |

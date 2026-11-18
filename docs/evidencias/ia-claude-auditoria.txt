@@ -1,0 +1,25 @@
+﻿$ python -m aquenda_cyber auditar --exemplo   (com ANTHROPIC_API_KEY no ambiente; 17/11/2026)
+Risco Cidadão: 78/100 (alto)
+  app          80  crítico   9 falha(s)
+  api_csharp   76  alto      8 falha(s)
+  api_soa       0  baixo     0 falha(s)
+
+O que rodou:
+  taint_app: 5 arquivos, 21 funções, 9 violações
+  semgrep_app: 7 achado(s), 7 já vistos pelo taint próprio
+  repositorio_app: varrido
+  semgrep_api_csharp: 5 achado(s) nas regras de taint
+  logs_api_csharp: 1 arquivo(s)
+
+Alertas:
+  [alta] Sua consulta médica pode sair do app ao abrir um link  (claude)
+  [alta] Informações de saúde de quem usa o app ficaram gravadas em registros internos  (claude)
+  [alta] Chaves de acesso do app aparecem nos registros internos  (claude)
+  [critica] Anotações da agenda de hormônio estão saindo do celular  (claude)
+  [alta] Sua agenda de hormônio pode estar saindo do celular  (claude)
+  [critica] Sua agenda de hormônio pode estar saindo do celular sem você saber  (claude)
+  [media] Sua agenda de hormônio pode aparecer nos registros internos do celular  (claude)
+  [alta] Sua agenda de hormônio fica guardada sem proteção no celular  (claude)
+
+Relatório em C:\Users\User\Desktop\GS-CYBER-AQUENDA\saida\exemplo\auditoria.json
+

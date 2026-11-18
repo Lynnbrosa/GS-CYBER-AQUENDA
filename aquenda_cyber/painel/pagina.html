@@ -202,8 +202,8 @@ function render(d) {
   document.getElementById("medidor-rotulo").setAttribute("aria-label", `Índice ${a.indice} de 100, nível ${a.nivel}`);
   const sens = a.falhas.filter((f) => f.sensibilidade === "dado_pessoal_sensivel").length;
   document.getElementById("resumo").innerHTML = a.falhas.length
-    ? `<strong>${a.falhas.length} ${a.falhas.length === 1 ? "falha" : "falhas"}</strong>, ${sens} com dado sensível (saúde, identidade de gênero). ${a.controles.length} fluxos de dado sensível verificados e protegidos.`
-    : `<strong>Nenhuma falha encontrada.</strong> ${a.controles.length} fluxos de dado sensível verificados e protegidos.`;
+    ? `<strong>${a.falhas.length} ${a.falhas.length === 1 ? "falha" : "falhas"}</strong>, ${sens} com dado sensível (saúde, identidade de gênero). ${a.controles.length === 1 ? "1 fluxo de dado sensível verificado e protegido." : `${a.controles.length} fluxos de dado sensível verificados e protegidos.`}`
+    : `<strong>Nenhuma falha encontrada.</strong> ${a.controles.length === 1 ? "1 fluxo de dado sensível verificado e protegido." : `${a.controles.length} fluxos de dado sensível verificados e protegidos.`}`;
   document.getElementById("quando").textContent = `Auditoria de ${new Date(a.quando).toLocaleString("pt-BR")}`;
 
   document.getElementById("componentes").innerHTML = ["app", "api_csharp", "api_soa"].map((c) => {

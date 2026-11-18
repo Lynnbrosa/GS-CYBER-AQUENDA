@@ -1,0 +1,154 @@
+[
+  {
+    "falha_id": "cf36f2f0b8",
+    "alerta": {
+      "titulo": "Sua consulta médica pode sair do app ao abrir um link",
+      "risco_para_a_pessoa": "Informações de uma consulta médica (como atendimento de saúde trans ou HIV) vão dentro de um link aberto fora do app. Esse link pode ficar salvo no histórico do navegador, em outros apps ou no site de destino, e alguém com acesso ao celular ou a esses serviços pode descobrir seu tratamento.",
+      "quem_e_afetado": "Quem registra ou consulta informações de consultas médicas no app e toca em links que levam para fora dele",
+      "gravidade": "alta",
+      "como_corrigir": [
+        "Em src/vazamentos.ts:21-22, remover os dados da consulta (variável c) da URL passada a Linking.openURL(); encodeURIComponent só formata, não protege.",
+        "Se o destino precisar de contexto, enviar apenas um identificador opaco e sem significado, ou abrir uma tela interna do app em vez de link externo.",
+        "Adicionar regra de lint/teste que bloqueie dados de saúde em chamadas a Linking.openURL, query strings e intents de compartilhamento.",
+        "Revisar se o serviço de destino registra a URL em logs ou analytics e pedir a remoção dos registros já existentes, se houver."
+      ],
+      "aviso_no_app": "Cuidar de você inclui cuidar dos seus dados: antes de abrir links fora do Aquenda, confira se não há informações da sua saúde neles, e lembre de limpar o histórico do navegador se outras pessoas usam seu celular."
+    },
+    "gerado_por": "claude",
+    "modelo": "claude-opus-5-5",
+    "observacao": null
+  },
+  {
+    "falha_id": "4fca7b10ce",
+    "alerta": {
+      "titulo": "Informações de saúde de quem usa o app ficaram gravadas em registros internos",
+      "risco_para_a_pessoa": "Se esses registros forem vistos por alguém de fora ou por quem não deveria, pode ser revelado que uma pessoa vive com HIV ou faz terapia hormonal com estradiol. Isso pode expor a identidade de gênero ou o diagnóstico sem consentimento e levar a discriminação, violência, perda de emprego ou rompimento familiar.",
+      "quem_e_afetado": "Quem escreveu sobre saúde (HIV ou hormônio) nas salas de conversa ou em outras partes ligadas à API",
+      "gravidade": "alta",
+      "como_corrigir": [
+        "Na API C#, remover o log do corpo de requisições e mensagens das salas de conversa (middleware de logging e controllers de salas). Registrar só metadados, como id da requisição, rota, status e tempo.",
+        "Adicionar um filtro de redação no pipeline de logging (Serilog/ILogger enricher ou destructuring policy) que mascare termos de saúde (HIV, estradiol, doses em mg) e outros dados sensíveis antes de gravar.",
+        "Apagar ou expurgar com segurança as entradas já gravadas em api-com-vazamento.log e nos backups ou agregadores de log. Depois, revisar quem teve acesso e registrar o incidente conforme a LGPD (art. 11 e 48).",
+        "Restringir o acesso aos logs, definir retenção curta e criar um teste automatizado que falhe se um payload de sala de conversa aparecer no log."
+      ],
+      "aviso_no_app": "Cuide de você: nas salas de conversa, evite contar detalhes de saúde como diagnóstico ou remédios e doses. Para isso, prefira conversar com um serviço de saúde de confiança."
+    },
+    "gerado_por": "claude",
+    "modelo": "claude-opus-5-5",
+    "observacao": null
+  },
+  {
+    "falha_id": "422536e23f",
+    "alerta": {
+      "titulo": "Chaves de acesso do app aparecem nos registros internos",
+      "risco_para_a_pessoa": "Quem tiver acesso a esses registros pode usar a chave para entrar no app como se fosse a pessoa e ler o que ela escreveu nas salas de conversa, descobrindo identidade de gênero ou outros assuntos íntimos. Isso pode levar a exposição, chantagem ou violência.",
+      "quem_e_afetado": "Quem está logado e usa as salas de conversa ou outras áreas com acesso pela API",
+      "gravidade": "alta",
+      "como_corrigir": [
+        "Na API C#, remover o cabeçalho Authorization e qualquer campo de token/chave do logging de requisições (ex.: configurar HttpLogging com RequestHeaders sem Authorization ou criar um filtro/middleware que substitua o valor por '[REDACTED]').",
+        "Adicionar um enricher/destructuring policy no logger (Serilog ou ILogger) que mascare padrões de token, Bearer e chaves (regex) antes de gravar, cobrindo também o caso 'nome da chave = valor aleatório'.",
+        "Revogar e rotacionar imediatamente os tokens e chaves que aparecem em api-com-vazamento.log, encerrar as sessões afetadas e apagar ou restringir o acesso a esse arquivo e às cópias/backups.",
+        "Incluir um teste ou verificação no CI que procure tokens em logs gerados nos testes e falhe o build se encontrar."
+      ],
+      "aviso_no_app": "Para sua segurança, encerramos algumas sessões. Entre de novo no app e, se notar algo estranho na sua conta, fale com a gente: estamos aqui para te proteger."
+    },
+    "gerado_por": "claude",
+    "modelo": "claude-opus-5-5",
+    "observacao": null
+  },
+  {
+    "falha_id": "67aea2e08c",
+    "alerta": {
+      "titulo": "Anotações da agenda de hormônio estão saindo do celular",
+      "risco_para_a_pessoa": "O que a pessoa escreve nas anotações da agenda de hormônio, que deveria ficar só no celular, está sendo enviado pela internet. Se isso for parar em mãos erradas, pode revelar que a pessoa faz tratamento hormonal e expor sua identidade de gênero contra a vontade, com risco de violência, perda de emprego ou rompimento familiar.",
+      "quem_e_afetado": "Quem usa a agenda de hormônio e escreve anotações no formulário",
+      "gravidade": "critica",
+      "como_corrigir": [
+        "Remover a chamada fetch() em src/app/agenda/formulario.tsx:8 que envia JSON.stringify do estado do formulário (incluindo .anotacao); a agenda deve persistir apenas localmente (ex.: armazenamento local cifrado/SecureStore).",
+        "Revisar o fluxo de src/app/agenda/formulario.tsx:5-8 para garantir que nenhum campo da agenda (especialmente .anotacao) seja serializado para rede, logs ou analytics.",
+        "Verificar no backend e em logs de servidor/proxy se já há registros recebidos dessa rota e apagá-los, avaliando a necessidade de comunicação de incidente conforme a LGPD.",
+        "Adicionar teste/regra de lint que bloqueie chamadas de rede a partir de src/app/agenda/ para evitar regressão."
+      ],
+      "aviso_no_app": "Sua agenda de hormônio é só sua: estamos ajustando o app para que tudo fique guardado apenas no seu celular. Até lá, evite escrever detalhes pessoais nas anotações."
+    },
+    "gerado_por": "claude",
+    "modelo": "claude-opus-5-5",
+    "observacao": null
+  },
+  {
+    "falha_id": "9fac554eda",
+    "alerta": {
+      "titulo": "Sua agenda de hormônio pode estar saindo do celular",
+      "risco_para_a_pessoa": "O app promete guardar a agenda de hormônio só no seu celular, mas há um trecho que envia esses lembretes pela internet. Se alguém interceptar ou acessar esse envio, pode descobrir que você faz terapia hormonal e, com isso, sua identidade de gênero, o que pode levar a exposição, violência, perda de emprego ou briga com a família.",
+      "quem_e_afetado": "quem cadastra lembretes de hormônio no app",
+      "gravidade": "alta",
+      "como_corrigir": [
+        "Remover a chamada fetch(...) em src/util.ts:6 que recebe o texto gerado a partir dos lembretes; a agenda de hormônio não deve sair do dispositivo em nenhuma hipótese.",
+        "Revisar resumoDoDia() em src/vazamentos.ts:15 e a função em src/util.ts:2-3 (map/join) para que o resumo com lembretes seja usado só localmente (ex.: notificação local), sem passar por funções de rede.",
+        "Isolar o acesso à tabela de lembretes no SQLite em um módulo sem dependência de rede e adicionar regra de lint/teste que falhe se dados desse módulo chegarem a fetch, XMLHttpRequest ou SDKs de analytics.",
+        "Verificar logs do servidor ou endpoint de destino do fetch para identificar se já houve recebimento desses dados e apagá-los, avaliando comunicação à ANPD e às pessoas afetadas conforme a LGPD."
+      ],
+      "aviso_no_app": "Estamos corrigindo um problema que podia enviar seus lembretes de hormônio para fora do celular; até a atualização, se preferir, use nomes discretos nos lembretes. Sua privacidade importa pra gente."
+    },
+    "gerado_por": "claude",
+    "modelo": "claude-opus-5-5",
+    "observacao": null
+  },
+  {
+    "falha_id": "1cc6de3f43",
+    "alerta": {
+      "titulo": "Sua agenda de hormônio pode estar saindo do celular sem você saber",
+      "risco_para_a_pessoa": "A agenda de hormônio deveria ficar só no seu celular, mas o app está enviando esses lembretes pela internet. Se alguém interceptar ou acessar esses dados, pode descobrir que você faz tratamento hormonal e expor sua identidade de gênero contra a sua vontade, com risco de violência, discriminação no trabalho ou conflito familiar.",
+      "quem_e_afetado": "Quem usa a agenda de lembretes de hormônio no app",
+      "gravidade": "critica",
+      "como_corrigir": [
+        "Remover a chamada fetch() em src/vazamentos.ts:10 que envia JSON.stringify(lembretes) lidos do SQLite; a agenda de hormônio deve permanecer exclusivamente local, conforme a promessa do app.",
+        "Auditar todo fluxo que lê a tabela de lembretes no SQLite e garantir que nenhum desses dados chegue a fetch, axios, analytics, logs remotos ou serviços de crash report; adicionar regra de lint/teste que falhe se dados da agenda forem serializados para rede.",
+        "Verificar no backend e em qualquer endpoint que tenha recebido essas requisições se há dados de lembretes armazenados ou em logs, apagá-los e avaliar a necessidade de comunicar as pessoas afetadas e a ANPD, conforme a LGPD (dado pessoal sensível de saúde).",
+        "Se algum dia for preciso backup, torná-lo opcional, com consentimento explícito e criptografia ponta a ponta feita no aparelho."
+      ],
+      "aviso_no_app": "Sua agenda de hormônio é só sua: estamos corrigindo uma falha para garantir que ela nunca saia do seu celular. Atualize o app assim que a nova versão estiver disponível."
+    },
+    "gerado_por": "claude",
+    "modelo": "claude-opus-5-5",
+    "observacao": null
+  },
+  {
+    "falha_id": "7572c258c8",
+    "alerta": {
+      "titulo": "Sua agenda de hormônio pode aparecer nos registros internos do celular",
+      "risco_para_a_pessoa": "Os lembretes de hormônio, que deveriam ficar só guardados no app, são escritos nos registros internos do celular. Alguém com acesso ao aparelho conectado a um computador, ou uma ferramenta de relatório de erros, poderia ver que a pessoa faz tratamento hormonal e, com isso, descobrir sua identidade de gênero sem consentimento.",
+      "quem_e_afetado": "Quem usa a agenda de hormônio no app",
+      "gravidade": "media",
+      "como_corrigir": [
+        "Remover o console.log em src/vazamentos.ts:28 que imprime o primeiro lembrete lido do SQLite (linha 27); se for preciso depurar, registrar apenas metadados não sensíveis (ex.: quantidade de lembretes).",
+        "Configurar o build de produção para remover todos os console.* (ex.: babel-plugin-transform-remove-console ou drop_console no minificador).",
+        "Adicionar regra de lint (no-console) e um teste/checagem no CI que bloqueie logs de variáveis vindas das tabelas de hormônio/saúde.",
+        "Verificar se alguma ferramenta de crash report ou captura de logs (Sentry, etc.) já recebeu esses dados e apagar os registros, filtrando campos sensíveis daqui para frente."
+      ],
+      "aviso_no_app": "Sua agenda de hormônio é só sua: mantenha o celular com senha e evite conectá-lo a computadores que você não conhece."
+    },
+    "gerado_por": "claude",
+    "modelo": "claude-opus-5-5",
+    "observacao": null
+  },
+  {
+    "falha_id": "86d95d336c",
+    "alerta": {
+      "titulo": "Sua agenda de hormônio fica guardada sem proteção no celular",
+      "risco_para_a_pessoa": "Quem pegar ou mexer no seu celular, ou um app malicioso, pode ler seus lembretes de hormônio e descobrir que você faz tratamento hormonal. Isso pode revelar sua identidade de gênero sem você querer, para família, parceiro ou colegas de trabalho.",
+      "quem_e_afetado": "Quem usa a agenda de hormônio do app",
+      "gravidade": "alta",
+      "como_corrigir": [
+        "Em src/vazamentos.ts:34, remover o AsyncStorage.setItem() que grava a lista de lembretes serializada com stringify(); os lembretes devem ficar só no SQLite.",
+        "Se for necessário cache, usar armazenamento cifrado (expo-secure-store / react-native-keychain para a chave e SQLCipher para o banco) em vez de AsyncStorage, que é texto puro.",
+        "Na próxima versão, executar migração que apaga a chave antiga do AsyncStorage (AsyncStorage.removeItem) para limpar dados já gravados nos aparelhos.",
+        "Adicionar regra de lint/teste que bloqueie AsyncStorage.setItem com dados vindos das tabelas sensíveis (hormônio, saúde)."
+      ],
+      "aviso_no_app": "Sua agenda de hormônio é só sua: use senha ou biometria no celular e atualize o Aquenda para a versão mais nova, que guarda tudo com mais proteção."
+    },
+    "gerado_por": "claude",
+    "modelo": "claude-opus-5-5",
+    "observacao": null
+  }
+]
