@@ -10,6 +10,8 @@ O Aquenda é um app para a comunidade LGBTQIAPN+. Ele guarda a agenda de hormôn
 | Gustavo Oliveira de Moura | 555827 |
 | Lynn Bueno Rosa | 551102 |
 
+**Vídeo do dashboard Risco Cidadão:** https://youtu.be/rBqV4geXdH4
+
 Repositórios do protótipo auditado: [app mobile](https://github.com/Lynnbrosa/GS-MOBILE-AQUENDA) (Expo), API C# (.NET) e FastAPI (SOA).
 
 ![Painel de Risco Cidadão do protótipo](docs/evidencias/painel-prototipo.png)
@@ -261,15 +263,6 @@ O relatório completo da auditoria, em PDF, está em [`docs/Aquenda_Cyber_Audito
 | `csharp-filtro-salas.txt` | as salas da API C# recusando nome de registro, senha, CPF e telefone, e aceitando conversa sobre saúde |
 | `hook-pre-commit.txt` | o pre-commit barrando um commit com chave de API e CPF |
 | `testes.txt` | os 75 testes passando |
-
-## Roteiro do vídeo (até 3 min)
-
-1. **0:00** O problema: no Aquenda, vazar o nome de registro ou a agenda de hormônio expõe a pessoa, e não só um CPF.
-2. **0:20** O motor de PII rodando no terminal (`varrer`) num texto com CPF, estradiol com dose e nome de registro, com o texto redigido.
-3. **0:50** A taint analysis no exemplo: as 9 violações e a trilha de uma delas, da agenda até o `fetch`. Depois no app real: zero violações e 18 fluxos permitidos.
-4. **1:30** As travas: `demo_guarda.py` mascarando e bloqueando com 502.
-5. **1:50** O painel: a falha do chat no exemplo e na primeira auditoria (29), explicada para pessoas. Depois, a correção (token para ler e mensagem cifrada no banco) e um novo "Rodar auditoria": o índice cai para 0 e o histórico mostra a queda.
-6. **2:40** Fechamento: o exemplo com falhas (78) mostra o que o painel acha, o pre-commit barra uma chave no commit e o Claude entra ligando a `ANTHROPIC_API_KEY`.
 
 ## Estrutura
 
